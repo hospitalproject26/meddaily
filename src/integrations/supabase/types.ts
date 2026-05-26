@@ -14,16 +14,285 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          customer_name: string
+          customer_type: Database["public"]["Enums"]["customer_type"]
+          id: string
+          next_refill_date: string | null
+          phone_number: string | null
+          remark: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          customer_name: string
+          customer_type?: Database["public"]["Enums"]["customer_type"]
+          id?: string
+          next_refill_date?: string | null
+          phone_number?: string | null
+          remark?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          customer_name?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"]
+          id?: string
+          next_refill_date?: string | null
+          phone_number?: string | null
+          remark?: string | null
+        }
+        Relationships: []
+      }
+      distributors: {
+        Row: {
+          address: string | null
+          created_at: string
+          distributor_name: string
+          id: string
+          medicines_available: string | null
+          mobile_number: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          distributor_name: string
+          id?: string
+          medicines_available?: string | null
+          mobile_number?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          distributor_name?: string
+          id?: string
+          medicines_available?: string | null
+          mobile_number?: string | null
+        }
+        Relationships: []
+      }
+      inventory: {
+        Row: {
+          batch_no: string | null
+          created_at: string
+          distributor_id: string | null
+          expiry_date: string | null
+          id: string
+          medicine_name: string
+          mrp_per_strip: number
+          mrp_per_tablet: number
+          ptr_per_strip: number
+          ptr_per_tablet: number
+          remaining_stock: number
+          serial_number: number
+          stock: number
+        }
+        Insert: {
+          batch_no?: string | null
+          created_at?: string
+          distributor_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          medicine_name: string
+          mrp_per_strip?: number
+          mrp_per_tablet?: number
+          ptr_per_strip?: number
+          ptr_per_tablet?: number
+          remaining_stock?: number
+          serial_number?: number
+          stock?: number
+        }
+        Update: {
+          batch_no?: string | null
+          created_at?: string
+          distributor_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          medicine_name?: string
+          mrp_per_strip?: number
+          mrp_per_tablet?: number
+          ptr_per_strip?: number
+          ptr_per_tablet?: number
+          remaining_stock?: number
+          serial_number?: number
+          stock?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_distributor_id_fkey"
+            columns: ["distributor_id"]
+            isOneToOne: false
+            referencedRelation: "distributors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          discount_per_medicine: number
+          final_item_total: number
+          id: string
+          inventory_id: string
+          medicine_name: string
+          mrp: number
+          order_id: string
+          quantity_sold: number
+        }
+        Insert: {
+          created_at?: string
+          discount_per_medicine?: number
+          final_item_total: number
+          id?: string
+          inventory_id: string
+          medicine_name: string
+          mrp: number
+          order_id: string
+          quantity_sold: number
+        }
+        Update: {
+          created_at?: string
+          discount_per_medicine?: number
+          final_item_total?: number
+          id?: string
+          inventory_id?: string
+          medicine_name?: string
+          mrp?: number
+          order_id?: string
+          quantity_sold?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          customer_name: string | null
+          date: string
+          id: string
+          mobile_number: string | null
+          total_amount: number
+          total_discount: number
+          total_profit: number
+          total_rate: number
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          date?: string
+          id?: string
+          mobile_number?: string | null
+          total_amount?: number
+          total_discount?: number
+          total_profit?: number
+          total_rate?: number
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          date?: string
+          id?: string
+          mobile_number?: string | null
+          total_amount?: number
+          total_discount?: number
+          total_profit?: number
+          total_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "Owner" | "Staff"
+      customer_type: "Home Delivery" | "Ordinary"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +419,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["Owner", "Staff"],
+      customer_type: ["Home Delivery", "Ordinary"],
+    },
   },
 } as const
