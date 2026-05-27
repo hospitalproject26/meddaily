@@ -173,6 +173,7 @@ function CustomerForm({ open, onOpenChange, item, onSaved }: any) {
             <div className="space-y-1.5"><Label className="text-xs">Next refill date</Label><Input type="date" value={form.next_refill_date || ""} onChange={(e) => update("next_refill_date", e.target.value)} /></div>
           </div>
           <div className="space-y-1.5"><Label className="text-xs">Address</Label><Input value={form.address || ""} onChange={(e) => update("address", e.target.value)} /></div>
+          <div className="space-y-1.5"><Label className="text-xs">Regular medicines (comma separated)</Label><Input value={form.regular_medicines || ""} onChange={(e) => update("regular_medicines", e.target.value)} placeholder="e.g. Metformin 500, Telmisartan 40" /></div>
           <div className="space-y-1.5"><Label className="text-xs">Remark</Label><Input value={form.remark || ""} onChange={(e) => update("remark", e.target.value)} /></div>
           <DialogFooter><Button type="submit">{item ? "Save changes" : "Add"}</Button></DialogFooter>
         </form>
