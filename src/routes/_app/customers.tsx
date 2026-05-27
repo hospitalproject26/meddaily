@@ -141,6 +141,7 @@ function CustomerForm({ open, onOpenChange, item, onSaved }: any) {
       address: form.address || null,
       next_refill_date: form.next_refill_date || null,
       remark: form.remark || null,
+      regular_medicines: form.regular_medicines || null,
     };
     const { error } = item
       ? await supabase.from("customers").update(payload).eq("id", item.id)
