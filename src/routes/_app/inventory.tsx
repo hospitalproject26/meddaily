@@ -79,6 +79,7 @@ function InventoryPage() {
               <tr>
                 <th className="px-3 py-2 text-left">S/N</th>
                 <th className="px-3 py-2 text-left">Medicine</th>
+                <th className="px-3 py-2 text-left">Distributor</th>
                 <th className="px-3 py-2 text-left">Batch</th>
                 <th className="px-3 py-2 text-right">Stock</th>
                 <th className="px-3 py-2 text-right">Remaining</th>
@@ -98,6 +99,7 @@ function InventoryPage() {
                   <tr key={m.id} className="border-t hover:bg-muted/30">
                     <td className="px-3 py-2">{m.serial_number}</td>
                     <td className="px-3 py-2 font-medium">{m.medicine_name}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{m.distributors?.distributor_name || "—"}</td>
                     <td className="px-3 py-2">{m.batch_no || "—"}</td>
                     <td className="px-3 py-2 text-right">{m.stock}</td>
                     <td className="px-3 py-2 text-right">
@@ -119,7 +121,7 @@ function InventoryPage() {
                   </tr>
                 );
               })}
-              {!data.length && <tr><td colSpan={11} className="text-center py-12 text-muted-foreground">No medicines found.</td></tr>}
+              {!data.length && <tr><td colSpan={12} className="text-center py-12 text-muted-foreground">No medicines found.</td></tr>}
             </tbody>
           </table>
         </CardContent>
