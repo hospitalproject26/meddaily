@@ -121,7 +121,7 @@ function InventoryPage() {
                   </tr>
                 );
               })}
-              {!data.length && <tr><td colSpan={11} className="text-center py-12 text-muted-foreground">No medicines found.</td></tr>}
+              {!data.length && <tr><td colSpan={12} className="text-center py-12 text-muted-foreground">No medicines found.</td></tr>}
             </tbody>
           </table>
         </CardContent>
