@@ -51,6 +51,9 @@ function BillingPage() {
   const [showQuickCust, setShowQuickCust] = useState(false);
   const [receipt, setReceipt] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const scanFn = useServerFn(scanPrescription);
 
   const { data: customers = [] } = useQuery({
     queryKey: ["customers-search", custSearch],
