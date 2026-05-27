@@ -99,6 +99,7 @@ function InventoryPage() {
                   <tr key={m.id} className="border-t hover:bg-muted/30">
                     <td className="px-3 py-2">{m.serial_number}</td>
                     <td className="px-3 py-2 font-medium">{m.medicine_name}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{m.distributors?.distributor_name || "—"}</td>
                     <td className="px-3 py-2">{m.batch_no || "—"}</td>
                     <td className="px-3 py-2 text-right">{m.stock}</td>
                     <td className="px-3 py-2 text-right">
