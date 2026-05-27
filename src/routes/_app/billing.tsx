@@ -129,6 +129,55 @@ function BillingPage() {
 
   const removeItem = (idx: number) => setItems((arr) => arr.filter((_, i) => i !== idx));
 
+  const handleScanFile = async (file: File) => {
+    if (file.size > 8 * 1024 * 1024) return toast.error("Image too large (max 8 MB)");
+    setScanning(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const result = r.result as string;
+          resolve(result.split(",")[1] ?? "");
+        };
+        r.onerror = () => reject(new Error("Failed to read file"));
+        r.readAsDataURL(file);
+      });
+      const res = await scanFn({ data: { imageBase64: base64, mimeType: file.type || "image/jpeg" } });
+      let added = 0;
+      setItems((prev) => {
+        const next = [...prev];
+        for (const m of res.matched) {
+          if (next.some((i) => i.inventory_id === m.inventory.id)) continue;
+          const inv = m.inventory;
+          const qty = Math.min(Math.max(1, m.quantity), inv.remaining_stock);
+          next.push({
+            inventory_id: inv.id,
+            medicine_name: inv.medicine_name,
+            batch_no: inv.batch_no,
+            remaining_stock: inv.remaining_stock,
+            unit: m.unit,
+            mrp: Number(m.unit === "strip" ? inv.mrp_per_strip : inv.mrp_per_tablet),
+            ptr: Number(m.unit === "strip" ? inv.ptr_per_strip : inv.ptr_per_tablet),
+            quantity: qty,
+            discount: 0,
+          });
+          added++;
+        }
+        return next;
+      });
+      if (added) toast.success(`Added ${added} medicine${added > 1 ? "s" : ""} from prescription`);
+      else toast.warning("No matching medicines found in inventory");
+      if (res.unmatched.length) {
+        toast.message("Not found in inventory", { description: res.unmatched.join(", ") });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to scan prescription");
+    } finally {
+      setScanning(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   const totals = useMemo(() => {
     let rate = 0, disc = 0, profit = 0;
     for (const it of items) {
