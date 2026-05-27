@@ -23,6 +23,7 @@ export type Database = {
           id: string
           next_refill_date: string | null
           phone_number: string | null
+          regular_medicines: string | null
           remark: string | null
         }
         Insert: {
@@ -33,6 +34,7 @@ export type Database = {
           id?: string
           next_refill_date?: string | null
           phone_number?: string | null
+          regular_medicines?: string | null
           remark?: string | null
         }
         Update: {
@@ -43,6 +45,7 @@ export type Database = {
           id?: string
           next_refill_date?: string | null
           phone_number?: string | null
+          regular_medicines?: string | null
           remark?: string | null
         }
         Relationships: []

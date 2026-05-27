@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Printer, Search, UserPlus } from "lucide-react";
+import { Plus, Trash2, Printer, Search, UserPlus, ScanLine, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { scanPrescription } from "@/lib/billing.functions";
+
 
 export const Route = createFileRoute("/_app/billing")({
   component: BillingPage,
@@ -48,6 +51,9 @@ function BillingPage() {
   const [showQuickCust, setShowQuickCust] = useState(false);
   const [receipt, setReceipt] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const scanFn = useServerFn(scanPrescription);
 
   const { data: customers = [] } = useQuery({
     queryKey: ["customers-search", custSearch],
@@ -122,6 +128,55 @@ function BillingPage() {
   };
 
   const removeItem = (idx: number) => setItems((arr) => arr.filter((_, i) => i !== idx));
+
+  const handleScanFile = async (file: File) => {
+    if (file.size > 8 * 1024 * 1024) return toast.error("Image too large (max 8 MB)");
+    setScanning(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const result = r.result as string;
+          resolve(result.split(",")[1] ?? "");
+        };
+        r.onerror = () => reject(new Error("Failed to read file"));
+        r.readAsDataURL(file);
+      });
+      const res = await scanFn({ data: { imageBase64: base64, mimeType: file.type || "image/jpeg" } });
+      let added = 0;
+      setItems((prev) => {
+        const next = [...prev];
+        for (const m of res.matched) {
+          if (next.some((i) => i.inventory_id === m.inventory.id)) continue;
+          const inv = m.inventory;
+          const qty = Math.min(Math.max(1, m.quantity), inv.remaining_stock);
+          next.push({
+            inventory_id: inv.id,
+            medicine_name: inv.medicine_name,
+            batch_no: inv.batch_no,
+            remaining_stock: inv.remaining_stock,
+            unit: m.unit,
+            mrp: Number(m.unit === "strip" ? inv.mrp_per_strip : inv.mrp_per_tablet),
+            ptr: Number(m.unit === "strip" ? inv.ptr_per_strip : inv.ptr_per_tablet),
+            quantity: qty,
+            discount: 0,
+          });
+          added++;
+        }
+        return next;
+      });
+      if (added) toast.success(`Added ${added} medicine${added > 1 ? "s" : ""} from prescription`);
+      else toast.warning("No matching medicines found in inventory");
+      if (res.unmatched.length) {
+        toast.message("Not found in inventory", { description: res.unmatched.join(", ") });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to scan prescription");
+    } finally {
+      setScanning(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
 
   const totals = useMemo(() => {
     let rate = 0, disc = 0, profit = 0;
@@ -265,8 +320,31 @@ function BillingPage() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
           <CardTitle className="text-base">Add Medicines</CardTitle>
+          <div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleScanFile(f);
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+              disabled={scanning}
+            >
+              {scanning ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ScanLine className="h-4 w-4 mr-2" />}
+              {scanning ? "Reading prescription…" : "Scan Prescription"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">
@@ -400,13 +478,14 @@ function ReceiptModal({ receipt, onClose }: { receipt: any; onClose: () => void 
             <div className="text-xs text-muted-foreground">{receipt.order.mobile_number} {receipt.order.address && `· ${receipt.order.address}`}</div>
           </div>
           <table className="w-full text-xs">
-            <thead className="border-b"><tr><th className="text-left py-1">Item</th><th className="text-right">Qty</th><th className="text-right">MRP</th><th className="text-right">Total</th></tr></thead>
+            <thead className="border-b"><tr><th className="text-left py-1">Item</th><th className="text-right">Qty</th><th className="text-right">MRP</th><th className="text-right">Disc</th><th className="text-right">Total</th></tr></thead>
             <tbody>
               {receipt.items.map((it: LineItem, i: number) => (
                 <tr key={i} className="border-b last:border-b-0">
                   <td className="py-1">{it.medicine_name}</td>
                   <td className="text-right">{it.quantity}</td>
                   <td className="text-right">₹{it.mrp.toFixed(2)}</td>
+                  <td className="text-right">₹{(it.discount * it.quantity).toFixed(2)}</td>
                   <td className="text-right">₹{((it.mrp - it.discount) * it.quantity).toFixed(2)}</td>
                 </tr>
               ))}

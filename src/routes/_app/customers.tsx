@@ -88,6 +88,7 @@ function CustomersPage() {
                 <th className="px-3 py-2 text-left">Name</th>
                 <th className="px-3 py-2 text-left">Type</th>
                 <th className="px-3 py-2 text-left">Phone</th>
+                <th className="px-3 py-2 text-left">Regular medicines</th>
                 <th className="px-3 py-2 text-left">Address</th>
                 <th className="px-3 py-2 text-left">Next Refill</th>
                 <th className="px-3 py-2 text-left">Remark</th>
@@ -102,6 +103,7 @@ function CustomersPage() {
                     <Badge variant="outline" className={c.customer_type === "Home Delivery" ? "bg-primary/10 text-primary border-primary/30" : ""}>{c.customer_type}</Badge>
                   </td>
                   <td className="px-3 py-2">{c.phone_number || "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground max-w-[14rem] truncate">{c.regular_medicines || "—"}</td>
                   <td className="px-3 py-2 max-w-xs truncate">{c.address || "—"}</td>
                   <td className="px-3 py-2 font-medium">{c.next_refill_date || "—"}</td>
                   <td className="px-3 py-2 text-muted-foreground max-w-xs truncate">{c.remark || "—"}</td>
@@ -113,7 +115,7 @@ function CustomersPage() {
                   </td>
                 </tr>
               ))}
-              {!data.length && <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">No customers found.</td></tr>}
+              {!data.length && <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">No customers found.</td></tr>}
             </tbody>
           </table>
         </CardContent>
@@ -139,6 +141,7 @@ function CustomerForm({ open, onOpenChange, item, onSaved }: any) {
       address: form.address || null,
       next_refill_date: form.next_refill_date || null,
       remark: form.remark || null,
+      regular_medicines: form.regular_medicines || null,
     };
     const { error } = item
       ? await supabase.from("customers").update(payload).eq("id", item.id)
@@ -170,6 +173,7 @@ function CustomerForm({ open, onOpenChange, item, onSaved }: any) {
             <div className="space-y-1.5"><Label className="text-xs">Next refill date</Label><Input type="date" value={form.next_refill_date || ""} onChange={(e) => update("next_refill_date", e.target.value)} /></div>
           </div>
           <div className="space-y-1.5"><Label className="text-xs">Address</Label><Input value={form.address || ""} onChange={(e) => update("address", e.target.value)} /></div>
+          <div className="space-y-1.5"><Label className="text-xs">Regular medicines (comma separated)</Label><Input value={form.regular_medicines || ""} onChange={(e) => update("regular_medicines", e.target.value)} placeholder="e.g. Metformin 500, Telmisartan 40" /></div>
           <div className="space-y-1.5"><Label className="text-xs">Remark</Label><Input value={form.remark || ""} onChange={(e) => update("remark", e.target.value)} /></div>
           <DialogFooter><Button type="submit">{item ? "Save changes" : "Add"}</Button></DialogFooter>
         </form>
