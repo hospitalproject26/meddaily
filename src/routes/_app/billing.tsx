@@ -478,13 +478,14 @@ function ReceiptModal({ receipt, onClose }: { receipt: any; onClose: () => void 
             <div className="text-xs text-muted-foreground">{receipt.order.mobile_number} {receipt.order.address && `· ${receipt.order.address}`}</div>
           </div>
           <table className="w-full text-xs">
-            <thead className="border-b"><tr><th className="text-left py-1">Item</th><th className="text-right">Qty</th><th className="text-right">MRP</th><th className="text-right">Total</th></tr></thead>
+            <thead className="border-b"><tr><th className="text-left py-1">Item</th><th className="text-right">Qty</th><th className="text-right">MRP</th><th className="text-right">Disc</th><th className="text-right">Total</th></tr></thead>
             <tbody>
               {receipt.items.map((it: LineItem, i: number) => (
                 <tr key={i} className="border-b last:border-b-0">
                   <td className="py-1">{it.medicine_name}</td>
                   <td className="text-right">{it.quantity}</td>
                   <td className="text-right">₹{it.mrp.toFixed(2)}</td>
+                  <td className="text-right">₹{(it.discount * it.quantity).toFixed(2)}</td>
                   <td className="text-right">₹{((it.mrp - it.discount) * it.quantity).toFixed(2)}</td>
                 </tr>
               ))}
