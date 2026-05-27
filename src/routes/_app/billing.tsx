@@ -12,7 +12,7 @@ import { Plus, Trash2, Printer, Search, UserPlus, ScanLine, Loader2 } from "luci
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { scanPrescription } from "@/lib/billing.functions";
-import { useRef } from "react";
+
 
 export const Route = createFileRoute("/_app/billing")({
   component: BillingPage,
