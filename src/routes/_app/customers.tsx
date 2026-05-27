@@ -88,6 +88,7 @@ function CustomersPage() {
                 <th className="px-3 py-2 text-left">Name</th>
                 <th className="px-3 py-2 text-left">Type</th>
                 <th className="px-3 py-2 text-left">Phone</th>
+                <th className="px-3 py-2 text-left">Regular medicines</th>
                 <th className="px-3 py-2 text-left">Address</th>
                 <th className="px-3 py-2 text-left">Next Refill</th>
                 <th className="px-3 py-2 text-left">Remark</th>
@@ -102,6 +103,7 @@ function CustomersPage() {
                     <Badge variant="outline" className={c.customer_type === "Home Delivery" ? "bg-primary/10 text-primary border-primary/30" : ""}>{c.customer_type}</Badge>
                   </td>
                   <td className="px-3 py-2">{c.phone_number || "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground max-w-[14rem] truncate">{c.regular_medicines || "—"}</td>
                   <td className="px-3 py-2 max-w-xs truncate">{c.address || "—"}</td>
                   <td className="px-3 py-2 font-medium">{c.next_refill_date || "—"}</td>
                   <td className="px-3 py-2 text-muted-foreground max-w-xs truncate">{c.remark || "—"}</td>
@@ -113,7 +115,7 @@ function CustomersPage() {
                   </td>
                 </tr>
               ))}
-              {!data.length && <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">No customers found.</td></tr>}
+              {!data.length && <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">No customers found.</td></tr>}
             </tbody>
           </table>
         </CardContent>
