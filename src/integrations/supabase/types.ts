@@ -50,6 +50,113 @@ export type Database = {
         }
         Relationships: []
       }
+      distributor_bill_items: {
+        Row: {
+          batch_no: string | null
+          bill_id: string
+          created_at: string
+          expiry_date: string | null
+          free_quantity: number
+          gst_percent: number
+          id: string
+          inventory_id: string | null
+          medicine_name: string
+          mrp_per_strip: number
+          ptr_per_strip: number
+          quantity: number
+          total_amount: number
+        }
+        Insert: {
+          batch_no?: string | null
+          bill_id: string
+          created_at?: string
+          expiry_date?: string | null
+          free_quantity?: number
+          gst_percent?: number
+          id?: string
+          inventory_id?: string | null
+          medicine_name: string
+          mrp_per_strip?: number
+          ptr_per_strip?: number
+          quantity?: number
+          total_amount?: number
+        }
+        Update: {
+          batch_no?: string | null
+          bill_id?: string
+          created_at?: string
+          expiry_date?: string | null
+          free_quantity?: number
+          gst_percent?: number
+          id?: string
+          inventory_id?: string | null
+          medicine_name?: string
+          mrp_per_strip?: number
+          ptr_per_strip?: number
+          quantity?: number
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distributor_bill_items_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "distributor_bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "distributor_bill_items_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      distributor_bills: {
+        Row: {
+          bill_date: string
+          created_at: string
+          created_by: string | null
+          distributor_id: string | null
+          distributor_name: string | null
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          total_amount: number
+        }
+        Insert: {
+          bill_date?: string
+          created_at?: string
+          created_by?: string | null
+          distributor_id?: string | null
+          distributor_name?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          total_amount?: number
+        }
+        Update: {
+          bill_date?: string
+          created_at?: string
+          created_by?: string | null
+          distributor_id?: string | null
+          distributor_name?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distributor_bills_distributor_id_fkey"
+            columns: ["distributor_id"]
+            isOneToOne: false
+            referencedRelation: "distributors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       distributors: {
         Row: {
           address: string | null
