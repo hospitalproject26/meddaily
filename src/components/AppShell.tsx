@@ -1,5 +1,5 @@
 import { Link, useRouterState, Outlet, useNavigate } from "@tanstack/react-router";
-import { Home, Receipt, Package, Users, Truck, BarChart3, LogOut, Pill } from "lucide-react";
+import { Home, Receipt, Package, Users, Truck, BarChart3, LogOut, Pill, ShoppingCart } from "lucide-react";
 import { useAuth, AppRole } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,13 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: "/", label: "Home", icon: Home, roles: ["Owner", "Staff"] },
   { to: "/billing", label: "Billing", icon: Receipt, roles: ["Owner", "Staff"] },
+  { to: "/purchases", label: "Purchases", icon: ShoppingCart, roles: ["Owner", "Staff"] },
   { to: "/inventory", label: "Inventory", icon: Package, roles: ["Owner"] },
   { to: "/customers", label: "Customers", icon: Users, roles: ["Owner"] },
   { to: "/distributors", label: "Distributors", icon: Truck, roles: ["Owner"] },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["Owner"] },
 ];
+
 
 export function AppShell() {
   const { role, signOut, user } = useAuth();
