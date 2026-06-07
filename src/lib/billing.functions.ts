@@ -92,9 +92,9 @@ export const scanPrescription = createServerFn({ method: "POST" })
         const cn = c.medicine_name.toLowerCase();
         const nn = name.toLowerCase();
         if (cn === nn) return 100;
-        const ctoks = cn.split(/\s+/);
-        const ntoks = nn.split(/\s+/);
-        const overlap = ntoks.filter((t) => ctoks.some((x) => x.startsWith(t) || t.startsWith(x))).length;
+        const ctoks: string[] = cn.split(/\s+/);
+        const ntoks: string[] = nn.split(/\s+/);
+        const overlap = ntoks.filter((t: string) => ctoks.some((x: string) => x.startsWith(t) || t.startsWith(x))).length;
         return (overlap / Math.max(ntoks.length, 1)) * 100;
       };
       candidates.sort((a, b) => score(b) - score(a));
