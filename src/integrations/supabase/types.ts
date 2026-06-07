@@ -190,45 +190,54 @@ export type Database = {
           created_at: string
           distributor_id: string | null
           expiry_date: string | null
+          gst_percent: number
           id: string
           medicine_name: string
           mrp_per_strip: number
           mrp_per_tablet: number
+          pack_size: number
           ptr_per_strip: number
           ptr_per_tablet: number
           remaining_stock: number
           serial_number: number
           stock: number
+          unit_type: string
         }
         Insert: {
           batch_no?: string | null
           created_at?: string
           distributor_id?: string | null
           expiry_date?: string | null
+          gst_percent?: number
           id?: string
           medicine_name: string
           mrp_per_strip?: number
           mrp_per_tablet?: number
+          pack_size?: number
           ptr_per_strip?: number
           ptr_per_tablet?: number
           remaining_stock?: number
           serial_number?: number
           stock?: number
+          unit_type?: string
         }
         Update: {
           batch_no?: string | null
           created_at?: string
           distributor_id?: string | null
           expiry_date?: string | null
+          gst_percent?: number
           id?: string
           medicine_name?: string
           mrp_per_strip?: number
           mrp_per_tablet?: number
+          pack_size?: number
           ptr_per_strip?: number
           ptr_per_tablet?: number
           remaining_stock?: number
           serial_number?: number
           stock?: number
+          unit_type?: string
         }
         Relationships: [
           {
@@ -242,37 +251,52 @@ export type Database = {
       }
       order_items: {
         Row: {
+          batch_no: string | null
           created_at: string
+          discount_amount: number
           discount_per_medicine: number
           final_item_total: number
+          gst_amount: number
+          gst_percent: number
           id: string
           inventory_id: string
           medicine_name: string
           mrp: number
           order_id: string
           quantity_sold: number
+          unit_type: string
         }
         Insert: {
+          batch_no?: string | null
           created_at?: string
+          discount_amount?: number
           discount_per_medicine?: number
           final_item_total: number
+          gst_amount?: number
+          gst_percent?: number
           id?: string
           inventory_id: string
           medicine_name: string
           mrp: number
           order_id: string
           quantity_sold: number
+          unit_type?: string
         }
         Update: {
+          batch_no?: string | null
           created_at?: string
+          discount_amount?: number
           discount_per_medicine?: number
           final_item_total?: number
+          gst_amount?: number
+          gst_percent?: number
           id?: string
           inventory_id?: string
           medicine_name?: string
           mrp?: number
           order_id?: string
           quantity_sold?: number
+          unit_type?: string
         }
         Relationships: [
           {
@@ -299,8 +323,12 @@ export type Database = {
           customer_id: string | null
           customer_name: string | null
           date: string
+          gst_amount: number
           id: string
+          invoice_number: string | null
           mobile_number: string | null
+          payment_method: string
+          received_amount: number
           total_amount: number
           total_discount: number
           total_profit: number
@@ -313,8 +341,12 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           date?: string
+          gst_amount?: number
           id?: string
+          invoice_number?: string | null
           mobile_number?: string | null
+          payment_method?: string
+          received_amount?: number
           total_amount?: number
           total_discount?: number
           total_profit?: number
@@ -327,8 +359,12 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           date?: string
+          gst_amount?: number
           id?: string
+          invoice_number?: string | null
           mobile_number?: string | null
+          payment_method?: string
+          received_amount?: number
           total_amount?: number
           total_discount?: number
           total_profit?: number

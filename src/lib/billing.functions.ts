@@ -76,18 +76,30 @@ export const scanPrescription = createServerFn({ method: "POST" })
     for (const item of extracted.items) {
       const name = item.medicine_name.trim();
       if (!name) continue;
-      // Try ilike on first significant word for fuzzier match
-      const firstWord = name.split(/\s+/)[0];
-      const { data: hits } = await supabase
-        .from("inventory")
-        .select("*")
-        .ilike("medicine_name", `%${firstWord}%`)
-        .gt("remaining_stock", 0)
-        .limit(5);
-      const best = (hits ?? []).find(
-        (h: any) => h.medicine_name.toLowerCase() === name.toLowerCase(),
-      ) ?? (hits ?? [])[0];
-      if (best) {
+      const tokens = name.split(/\s+/).filter((t) => t.length >= 3);
+      const seen = new Map<string, any>();
+      for (const tok of tokens.slice(0, 3)) {
+        const { data: hits } = await supabase
+          .from("inventory")
+          .select("*")
+          .ilike("medicine_name", `%${tok}%`)
+          .gt("remaining_stock", 0)
+          .limit(10);
+        (hits ?? []).forEach((h: any) => { if (!seen.has(h.id)) seen.set(h.id, h); });
+      }
+      const candidates = Array.from(seen.values());
+      const score = (c: any) => {
+        const cn = c.medicine_name.toLowerCase();
+        const nn = name.toLowerCase();
+        if (cn === nn) return 100;
+        const ctoks: string[] = cn.split(/\s+/);
+        const ntoks: string[] = nn.split(/\s+/);
+        const overlap = ntoks.filter((t: string) => ctoks.some((x: string) => x.startsWith(t) || t.startsWith(x))).length;
+        return (overlap / Math.max(ntoks.length, 1)) * 100;
+      };
+      candidates.sort((a, b) => score(b) - score(a));
+      const best = candidates[0];
+      if (best && score(best) >= 40) {
         matched.push({ inventory: best, requested_name: name, quantity: item.quantity, unit: item.unit });
       } else {
         unmatched.push(name);
