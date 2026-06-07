@@ -107,3 +107,10 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+@media print {
+  body * { visibility: hidden; }
+  #receipt-body, #receipt-body * { visibility: visible; }
+  #receipt-body { position: absolute; left: 0; top: 0; width: 100%; padding: 12px; color: #000; }
+  .print\:hidden { display: none !important; }
+}
