@@ -36,6 +36,7 @@ function InventoryPage() {
     queryFn: async () => {
       let q = supabase.from("inventory").select("*, distributors(distributor_name)").order("serial_number", { ascending: false });
       if (search) q = q.ilike("medicine_name", `%${search}%`);
+      if (categoryFilter !== "all") q = q.eq("category", categoryFilter);
       if (filter === "low") q = q.lt("remaining_stock", 10);
       if (filter === "expiring") {
         const in30 = new Date(); in30.setDate(in30.getDate() + 30);
