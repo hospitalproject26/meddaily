@@ -201,6 +201,14 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
         <form onSubmit={save} className="grid sm:grid-cols-2 gap-3">
           <Field label="Medicine name" required><Input value={form.medicine_name || ""} onChange={(e) => update("medicine_name", e.target.value)} required /></Field>
           <Field label="Batch no"><Input value={form.batch_no || ""} onChange={(e) => update("batch_no", e.target.value)} /></Field>
+          <Field label="Category">
+            <Select value={form.category || "GM"} onValueChange={(v) => update("category", v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Unit type">
             <Select value={form.unit_type || "strip"} onValueChange={(v) => update("unit_type", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
