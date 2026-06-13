@@ -182,9 +182,9 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
       remaining_stock: item ? Number(form.remaining_stock ?? form.stock ?? 0) : Number(form.stock || 0),
       expiry_date: form.expiry_date || null,
       mrp_per_strip: mrpStrip,
-      mrp_per_tablet: Number(form.mrp_per_tablet) || (mrpStrip ? +(mrpStrip / packSize).toFixed(4) : 0),
+      mrp_per_tablet: mrpStrip ? +(mrpStrip / packSize).toFixed(4) : 0,
       ptr_per_strip: ptrStrip,
-      ptr_per_tablet: Number(form.ptr_per_tablet) || (ptrStrip ? +(ptrStrip / packSize).toFixed(4) : 0),
+      ptr_per_tablet: ptrStrip ? +(ptrStrip / packSize).toFixed(4) : 0,
       distributor_id: form.distributor_id || null,
     };
     const { error } = item
@@ -194,7 +194,9 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
     toast.success(item ? "Updated" : "Added"); onSaved(); onOpenChange(false);
   };
 
-  const autoMrpTab = form.mrp_per_strip && form.pack_size ? (Number(form.mrp_per_strip) / Math.max(1, Number(form.pack_size))).toFixed(2) : "";
+  const pack = Math.max(1, Number(form.pack_size || 10));
+  const autoMrpTab = form.mrp_per_strip ? (Number(form.mrp_per_strip) / pack).toFixed(4) : "";
+  const autoPtrTab = form.ptr_per_strip ? (Number(form.ptr_per_strip) / pack).toFixed(4) : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -223,7 +225,7 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Pack size (units per strip)"><Input type="number" min={1} value={form.pack_size ?? 10} onChange={(e) => update("pack_size", e.target.value)} /></Field>
+          <Field label="Quantity per strip (tablets/units)"><Input type="number" min={1} value={form.pack_size ?? 10} onChange={(e) => update("pack_size", e.target.value)} /></Field>
           <Field label="Stock (strips/units)"><Input type="number" value={form.stock ?? ""} onChange={(e) => update("stock", e.target.value)} /></Field>
           {item && <Field label="Remaining stock"><Input type="number" value={form.remaining_stock ?? ""} onChange={(e) => update("remaining_stock", e.target.value)} /></Field>}
           <Field label="Expiry date"><Input type="date" value={form.expiry_date || ""} onChange={(e) => update("expiry_date", e.target.value)} /></Field>
@@ -236,9 +238,9 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
             </Select>
           </Field>
           <Field label="MRP per strip"><Input type="number" step="0.01" value={form.mrp_per_strip ?? ""} onChange={(e) => update("mrp_per_strip", e.target.value)} /></Field>
-          <Field label={`MRP per tablet ${autoMrpTab ? `(auto: ₹${autoMrpTab})` : ""}`}><Input type="number" step="0.01" placeholder={autoMrpTab} value={form.mrp_per_tablet ?? ""} onChange={(e) => update("mrp_per_tablet", e.target.value)} /></Field>
+          <Field label="MRP per tablet (auto)"><Input type="number" step="0.0001" value={autoMrpTab} readOnly className="bg-muted/40" /></Field>
           <Field label="PTR per strip (purchase rate)"><Input type="number" step="0.01" value={form.ptr_per_strip ?? ""} onChange={(e) => update("ptr_per_strip", e.target.value)} /></Field>
-          <Field label="PTR per tablet"><Input type="number" step="0.01" value={form.ptr_per_tablet ?? ""} onChange={(e) => update("ptr_per_tablet", e.target.value)} /></Field>
+          <Field label="PTR per tablet (auto)"><Input type="number" step="0.0001" value={autoPtrTab} readOnly className="bg-muted/40" /></Field>
           <Field label="GST %"><Input type="number" step="0.01" value={form.gst_percent ?? 0} onChange={(e) => update("gst_percent", e.target.value)} /></Field>
           <DialogFooter className="sm:col-span-2"><Button type="submit">{item ? "Save changes" : "Add medicine"}</Button></DialogFooter>
         </form>
