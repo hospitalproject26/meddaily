@@ -1,0 +1,2 @@
+ALTER TABLE public.inventory ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'GM' CHECK (category IN ('GM','SM','GI'));
+CREATE INDEX IF NOT EXISTS inventory_category_idx ON public.inventory(category);
