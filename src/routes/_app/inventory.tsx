@@ -94,6 +94,7 @@ function InventoryPage() {
               <tr>
                 <th className="px-3 py-2 text-left">S/N</th>
                 <th className="px-3 py-2 text-left">Medicine</th>
+                <th className="px-3 py-2 text-left">Cat</th>
                 <th className="px-3 py-2 text-left">Distributor</th>
                 <th className="px-3 py-2 text-left">Batch</th>
                 <th className="px-3 py-2 text-right">Stock</th>
