@@ -17,18 +17,26 @@ export const Route = createFileRoute("/_app/inventory")({
   component: () => <RequireRole roles={["Owner"]}><InventoryPage /></RequireRole>,
 });
 
+const CATEGORIES = [
+  { value: "GM", label: "Generic Medicine (GM)" },
+  { value: "SM", label: "Standard Medicine (SM)" },
+  { value: "GI", label: "Generic Item (GI)" },
+];
+
 function InventoryPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "low" | "expiring">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [editing, setEditing] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
 
   const { data = [] } = useQuery({
-    queryKey: ["inventory", search, filter],
+    queryKey: ["inventory", search, filter, categoryFilter],
     queryFn: async () => {
       let q = supabase.from("inventory").select("*, distributors(distributor_name)").order("serial_number", { ascending: false });
       if (search) q = q.ilike("medicine_name", `%${search}%`);
+      if (categoryFilter !== "all") q = q.eq("category", categoryFilter);
       if (filter === "low") q = q.lt("remaining_stock", 10);
       if (filter === "expiring") {
         const in30 = new Date(); in30.setDate(in30.getDate() + 30);
@@ -70,6 +78,13 @@ function InventoryPage() {
             <SelectItem value="expiring">Expiring in 30 days</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
@@ -79,6 +94,7 @@ function InventoryPage() {
               <tr>
                 <th className="px-3 py-2 text-left">S/N</th>
                 <th className="px-3 py-2 text-left">Medicine</th>
+                <th className="px-3 py-2 text-left">Cat</th>
                 <th className="px-3 py-2 text-left">Distributor</th>
                 <th className="px-3 py-2 text-left">Batch</th>
                 <th className="px-3 py-2 text-right">Stock</th>
@@ -99,6 +115,7 @@ function InventoryPage() {
                   <tr key={m.id} className="border-t hover:bg-muted/30">
                     <td className="px-3 py-2">{m.serial_number}</td>
                     <td className="px-3 py-2 font-medium">{m.medicine_name}</td>
+                    <td className="px-3 py-2"><Badge variant="outline">{m.category || "GM"}</Badge></td>
                     <td className="px-3 py-2 text-muted-foreground">{m.distributors?.distributor_name || "—"}</td>
                     <td className="px-3 py-2">{m.batch_no || "—"}</td>
                     <td className="px-3 py-2 text-right">{m.stock}</td>
@@ -121,7 +138,7 @@ function InventoryPage() {
                   </tr>
                 );
               })}
-              {!data.length && <tr><td colSpan={12} className="text-center py-12 text-muted-foreground">No medicines found.</td></tr>}
+              {!data.length && <tr><td colSpan={13} className="text-center py-12 text-muted-foreground">No medicines found.</td></tr>}
             </tbody>
           </table>
         </CardContent>
@@ -154,6 +171,7 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
     const ptrStrip = Number(form.ptr_per_strip || 0);
     const payload = {
       medicine_name: form.medicine_name,
+      category: form.category || "GM",
       batch_no: form.batch_no || null,
       pack_size: packSize,
       unit_type: form.unit_type || "strip",
@@ -183,6 +201,14 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
         <form onSubmit={save} className="grid sm:grid-cols-2 gap-3">
           <Field label="Medicine name" required><Input value={form.medicine_name || ""} onChange={(e) => update("medicine_name", e.target.value)} required /></Field>
           <Field label="Batch no"><Input value={form.batch_no || ""} onChange={(e) => update("batch_no", e.target.value)} /></Field>
+          <Field label="Category">
+            <Select value={form.category || "GM"} onValueChange={(v) => update("category", v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Unit type">
             <Select value={form.unit_type || "strip"} onValueChange={(v) => update("unit_type", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>

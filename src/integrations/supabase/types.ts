@@ -187,6 +187,7 @@ export type Database = {
       inventory: {
         Row: {
           batch_no: string | null
+          category: string
           created_at: string
           distributor_id: string | null
           expiry_date: string | null
@@ -205,6 +206,7 @@ export type Database = {
         }
         Insert: {
           batch_no?: string | null
+          category?: string
           created_at?: string
           distributor_id?: string | null
           expiry_date?: string | null
@@ -223,6 +225,7 @@ export type Database = {
         }
         Update: {
           batch_no?: string | null
+          category?: string
           created_at?: string
           distributor_id?: string | null
           expiry_date?: string | null
