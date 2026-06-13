@@ -17,10 +17,17 @@ export const Route = createFileRoute("/_app/inventory")({
   component: () => <RequireRole roles={["Owner"]}><InventoryPage /></RequireRole>,
 });
 
+const CATEGORIES = [
+  { value: "GM", label: "Generic Medicine (GM)" },
+  { value: "SM", label: "Standard Medicine (SM)" },
+  { value: "GI", label: "Generic Item (GI)" },
+];
+
 function InventoryPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "low" | "expiring">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [editing, setEditing] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
 
