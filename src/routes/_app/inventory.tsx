@@ -32,7 +32,7 @@ function InventoryPage() {
   const [open, setOpen] = useState(false);
 
   const { data = [] } = useQuery({
-    queryKey: ["inventory", search, filter],
+    queryKey: ["inventory", search, filter, categoryFilter],
     queryFn: async () => {
       let q = supabase.from("inventory").select("*, distributors(distributor_name)").order("serial_number", { ascending: false });
       if (search) q = q.ilike("medicine_name", `%${search}%`);
