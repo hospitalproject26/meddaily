@@ -171,6 +171,7 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
     const ptrStrip = Number(form.ptr_per_strip || 0);
     const payload = {
       medicine_name: form.medicine_name,
+      category: form.category || "GM",
       batch_no: form.batch_no || null,
       pack_size: packSize,
       unit_type: form.unit_type || "strip",
