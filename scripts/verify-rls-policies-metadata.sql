@@ -22,32 +22,32 @@ BEGIN
     tbl := expected[i][1]; cmd := expected[i][2]; pol := expected[i][3];
 
     SELECT p.policyname, p.cmd, p.roles, p.qual, p.with_check
-      INTO found
+      INTO pol_row
       FROM pg_policies p
      WHERE p.schemaname = 'public' AND p.tablename = tbl AND p.policyname = pol;
 
-    IF NOT FOUND THEN
+    IF pol_row IS NULL THEN
       RAISE EXCEPTION 'FAIL: policy "%" on public.% is missing', pol, tbl;
     END IF;
-    IF found.cmd <> cmd THEN
+    IF pol_row.cmd <> cmd THEN
       RAISE EXCEPTION 'FAIL: policy "%" on public.% has cmd=% (expected %)',
-        pol, tbl, found.cmd, cmd;
+        pol, tbl, pol_row.cmd, cmd;
     END IF;
-    IF NOT ('authenticated' = ANY (found.roles)) THEN
+    IF NOT ('authenticated' = ANY (pol_row.roles)) THEN
       RAISE EXCEPTION 'FAIL: policy "%" on public.% is not scoped to authenticated (roles=%)',
-        pol, tbl, found.roles;
+        pol, tbl, pol_row.roles;
     END IF;
-    IF position('has_role' IN COALESCE(found.qual, '')) = 0 THEN
+    IF position('has_role' IN COALESCE(pol_row.qual, '')) = 0 THEN
       RAISE EXCEPTION 'FAIL: policy "%" on public.% USING clause does not reference has_role: %',
-        pol, tbl, found.qual;
+        pol, tbl, pol_row.qual;
     END IF;
-    IF position('Owner' IN COALESCE(found.qual, '')) = 0 THEN
+    IF position('Owner' IN COALESCE(pol_row.qual, '')) = 0 THEN
       RAISE EXCEPTION 'FAIL: policy "%" on public.% USING clause does not gate on Owner: %',
-        pol, tbl, found.qual;
+        pol, tbl, pol_row.qual;
     END IF;
-    IF cmd = 'UPDATE' AND position('has_role' IN COALESCE(found.with_check, '')) = 0 THEN
+    IF cmd = 'UPDATE' AND position('has_role' IN COALESCE(pol_row.with_check, '')) = 0 THEN
       RAISE EXCEPTION 'FAIL: policy "%" on public.% WITH CHECK clause missing has_role: %',
-        pol, tbl, found.with_check;
+        pol, tbl, pol_row.with_check;
     END IF;
 
     RAISE NOTICE 'PASS: %.% % policy "%"', 'public', tbl, cmd, pol;
