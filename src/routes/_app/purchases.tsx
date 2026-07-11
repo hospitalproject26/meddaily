@@ -15,7 +15,8 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Camera, Loader2, ShoppingCart, Package, TrendingUp, Receipt } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Plus, Trash2, Camera, Loader2, ShoppingCart, Package, TrendingUp, Receipt, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { scanDistributorBill } from "@/lib/purchase.functions";
 
