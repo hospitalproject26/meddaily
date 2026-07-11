@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RequireRole } from "@/components/AuthGate";
 import { Button } from "@/components/ui/button";
@@ -158,11 +158,11 @@ function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
     queryFn: async () => (await supabase.from("distributors").select("id, distributor_name").order("distributor_name")).data ?? [],
   });
 
-  // initialize form when opening
-  useState(() => { setForm(item ?? {}); });
-  // Reset on item change:
-  if (open && item && form.id !== item.id) setForm(item);
-  if (open && !item && form.id) setForm({});
+  // Populate/reset form each time the dialog opens or the target item changes
+  useEffect(() => {
+    if (!open) return;
+    setForm(item ? { ...item } : {});
+  }, [open, item?.id]);
 
   const update = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
 

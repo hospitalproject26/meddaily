@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,8 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Camera, Loader2, ShoppingCart, Package, TrendingUp, Receipt } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Plus, Trash2, Camera, Loader2, ShoppingCart, Package, TrendingUp, Receipt, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { scanDistributorBill } from "@/lib/purchase.functions";
 
@@ -50,6 +51,7 @@ function PurchasesPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [scanning, setScanning] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editBill, setEditBill] = useState<any | null>(null);
 
   const [distributorId, setDistributorId] = useState<string>("");
   const [distributorName, setDistributorName] = useState("");
@@ -305,7 +307,10 @@ function PurchasesPage() {
                     <TableCell>{b.distributor_name || "—"}</TableCell>
                     <TableCell>{b.invoice_number || "—"}</TableCell>
                     <TableCell>₹{Number(b.total_amount).toFixed(2)}</TableCell>
-                    <TableCell>{isOwner && <Button size="icon" variant="ghost" onClick={() => deleteBill(b.id)}><Trash2 className="h-4 w-4" /></Button>}</TableCell>
+                    <TableCell className="text-right">
+                      <Button size="icon" variant="ghost" onClick={() => setEditBill(b)}><Pencil className="h-4 w-4" /></Button>
+                      {isOwner && <Button size="icon" variant="ghost" onClick={() => deleteBill(b.id)}><Trash2 className="h-4 w-4" /></Button>}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {!bills.length && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No bills yet.</TableCell></TableRow>}
@@ -314,7 +319,55 @@ function PurchasesPage() {
           </div>
         </CardContent>
       </Card>
+
+      <EditBillDialog bill={editBill} distributors={distributors} onClose={() => setEditBill(null)} onSaved={() => qc.invalidateQueries({ queryKey: ["distributor-bills"] })} />
     </div>
+  );
+}
+
+function EditBillDialog({ bill, distributors, onClose, onSaved }: any) {
+  const [form, setForm] = useState<any>({});
+  useEffect(() => { if (bill) setForm({ ...bill }); }, [bill?.id]);
+  if (!bill) return null;
+  const update = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
+  const save = async () => {
+    const dName = form.distributor_id
+      ? distributors.find((d: any) => d.id === form.distributor_id)?.distributor_name
+      : form.distributor_name;
+    const { error } = await supabase.from("distributor_bills").update({
+      distributor_id: form.distributor_id || null,
+      distributor_name: dName || form.distributor_name,
+      invoice_number: form.invoice_number || null,
+      bill_date: form.bill_date,
+      total_amount: Number(form.total_amount || 0),
+      notes: form.notes || null,
+    }).eq("id", bill.id);
+    if (error) return toast.error(error.message);
+    toast.success("Bill updated"); onSaved(); onClose();
+  };
+  return (
+    <Dialog open={!!bill} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Edit Bill</DialogTitle></DialogHeader>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label className="text-xs">Distributor</Label>
+            <Select value={form.distributor_id || ""} onValueChange={(v) => { update("distributor_id", v); const d = distributors.find((x: any) => x.id === v); if (d) update("distributor_name", d.distributor_name); }}>
+              <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+              <SelectContent>
+                {distributors.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.distributor_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Input placeholder="Or distributor name" value={form.distributor_name || ""} onChange={(e) => update("distributor_name", e.target.value)} />
+          </div>
+          <div className="space-y-1.5"><Label className="text-xs">Invoice #</Label><Input value={form.invoice_number || ""} onChange={(e) => update("invoice_number", e.target.value)} /></div>
+          <div className="space-y-1.5"><Label className="text-xs">Bill date</Label><Input type="date" value={form.bill_date || ""} onChange={(e) => update("bill_date", e.target.value)} /></div>
+          <div className="space-y-1.5"><Label className="text-xs">Total amount</Label><Input type="number" step="0.01" value={form.total_amount ?? 0} onChange={(e) => update("total_amount", e.target.value)} /></div>
+          <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs">Notes</Label><Textarea rows={2} value={form.notes || ""} onChange={(e) => update("notes", e.target.value)} /></div>
+        </div>
+        <DialogFooter><Button onClick={save}>Save changes</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

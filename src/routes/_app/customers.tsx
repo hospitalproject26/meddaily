@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RequireRole } from "@/components/AuthGate";
 import { Button } from "@/components/ui/button";
@@ -128,8 +128,10 @@ function CustomersPage() {
 
 function CustomerForm({ open, onOpenChange, item, onSaved }: any) {
   const [form, setForm] = useState<any>({});
-  if (open && item && form._id !== item.id) setForm({ ...item, _id: item.id });
-  if (open && !item && form._id) setForm({});
+  useEffect(() => {
+    if (!open) return;
+    setForm(item ? { ...item } : {});
+  }, [open, item?.id]);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
