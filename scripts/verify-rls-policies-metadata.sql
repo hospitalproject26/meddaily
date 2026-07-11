@@ -16,7 +16,7 @@ DECLARE
   ];
   i int;
   tbl text; cmd text; pol text;
-  found RECORD;
+  pol_row RECORD;
 BEGIN
   FOR i IN 1 .. array_length(expected, 1) LOOP
     tbl := expected[i][1]; cmd := expected[i][2]; pol := expected[i][3];
