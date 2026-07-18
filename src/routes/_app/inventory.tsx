@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RequireRole } from "@/components/AuthGate";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, Columns3 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/inventory")({
@@ -23,6 +32,34 @@ const CATEGORIES = [
   { value: "GI", label: "Generic Item (GI)" },
 ];
 
+type ColumnKey =
+  | "serial_number" | "medicine_name" | "category" | "distributor" | "batch_no"
+  | "unit_type" | "pack_size" | "stock" | "remaining_stock" | "expiry_date"
+  | "mrp_per_strip" | "mrp_per_tablet" | "ptr_per_strip" | "ptr_per_tablet"
+  | "gst_percent" | "edit" | "delete";
+
+type ColumnDef = { key: ColumnKey; label: string; width: string; align?: "left" | "right"; sortable?: boolean; sortKey?: string; sticky?: boolean; };
+
+const COLUMNS: ColumnDef[] = [
+  { key: "serial_number", label: "S/N", width: "w-16", align: "left", sortable: true },
+  { key: "medicine_name", label: "Medicine", width: "w-52", align: "left", sortable: true },
+  { key: "category", label: "Category", width: "w-24", align: "left", sortable: true },
+  { key: "distributor", label: "Distributor", width: "w-44", align: "left", sortable: true, sortKey: "distributors.distributor_name" },
+  { key: "batch_no", label: "Batch No", width: "w-28", align: "left", sortable: true },
+  { key: "unit_type", label: "Unit Type", width: "w-24", align: "left", sortable: true },
+  { key: "pack_size", label: "Qty/Strip", width: "w-24", align: "right", sortable: true },
+  { key: "stock", label: "Stock", width: "w-20", align: "right", sortable: true },
+  { key: "remaining_stock", label: "Remaining", width: "w-28", align: "right", sortable: true },
+  { key: "expiry_date", label: "Expiry", width: "w-28", align: "left", sortable: true },
+  { key: "mrp_per_strip", label: "MRP/Strip", width: "w-28", align: "right", sortable: true },
+  { key: "mrp_per_tablet", label: "MRP/Tab", width: "w-28", align: "right", sortable: true },
+  { key: "ptr_per_strip", label: "PTR/Strip", width: "w-28", align: "right", sortable: true },
+  { key: "ptr_per_tablet", label: "PTR/Tab", width: "w-28", align: "right", sortable: true },
+  { key: "gst_percent", label: "GST %", width: "w-20", align: "right", sortable: true },
+  { key: "edit", label: "Edit", width: "w-20", align: "right", sticky: true },
+  { key: "delete", label: "Delete", width: "w-20", align: "right", sticky: true },
+];
+
 function InventoryPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -30,6 +67,11 @@ function InventoryPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [editing, setEditing] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<ColumnKey>("serial_number");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [visible, setVisible] = useState<Record<ColumnKey, boolean>>(() =>
+    Object.fromEntries(COLUMNS.map(c => [c.key, true])) as Record<ColumnKey, boolean>
+  );
 
   const { data = [] } = useQuery({
     queryKey: ["inventory", search, filter, categoryFilter],
@@ -51,18 +93,45 @@ function InventoryPage() {
     refetchOnWindowFocus: false,
   });
 
-  const remove = async (id: string) => {
+  const sorted = useMemo(() => {
+    const arr = [...data];
+    const getVal = (row: any) => {
+      if (sortBy === "distributor") return row.distributors?.distributor_name ?? "";
+      return row[sortBy];
+    };
+    arr.sort((a, b) => {
+      const av = getVal(a); const bv = getVal(b);
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === "number" && typeof bv === "number") return av - bv;
+      return String(av).localeCompare(String(bv), undefined, { numeric: true });
+    });
+    if (sortDir === "desc") arr.reverse();
+    return arr;
+  }, [data, sortBy, sortDir]);
+
+  const remove = useCallback(async (id: string) => {
     if (!confirm("Delete this medicine?")) return;
     const { error } = await supabase.from("inventory").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["inventory"] });
+  }, [qc]);
+
+  const onEdit = useCallback((m: any) => { setEditing(m); setOpen(true); }, []);
+
+  const toggleSort = (key: ColumnKey) => {
+    if (sortBy === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortBy(key); setSortDir("asc"); }
   };
 
+  const visibleCols = COLUMNS.filter(c => visible[c.key]);
+
   return (
-    <div className="space-y-6 max-w-7xl">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Inventory</h1>
+    <div className="space-y-6 max-w-[1600px]">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl md:text-3xl font-bold">Inventory</h1>
           <p className="text-sm text-muted-foreground">Manage your stock, batches, and pricing.</p>
         </div>
         <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Medicine</Button>
@@ -88,82 +157,67 @@ function InventoryPage() {
             {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
           </SelectContent>
         </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline"><Columns3 className="h-4 w-4 mr-2" />Columns</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 max-h-[70vh] overflow-y-auto">
+            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {COLUMNS.map(c => (
+              <DropdownMenuCheckboxItem
+                key={c.key}
+                checked={visible[c.key]}
+                onCheckedChange={(v) => setVisible(prev => ({ ...prev, [c.key]: !!v }))}
+                onSelect={(e) => e.preventDefault()}
+              >
+                {c.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <Card>
-        <CardContent className="p-0 overflow-x-auto inventory-table-wrap">
-          <table className="w-full min-w-[1180px] table-fixed text-sm inventory-table">
-            <colgroup>
-              <col className="w-16" />
-              <col className="w-48" />
-              <col className="w-20" />
-              <col className="w-44" />
-              <col className="w-28" />
-              <col className="w-24" />
-              <col className="w-20" />
-              <col className="w-24" />
-              <col className="w-28" />
-              <col className="w-28" />
-              <col className="w-28" />
-              <col className="w-28" />
-              <col className="w-28" />
-              <col className="w-32" />
-            </colgroup>
-            <thead className="text-xs uppercase text-muted-foreground bg-muted/40">
-              <tr>
-                <th className="px-3 py-2 text-left">S/N</th>
-                <th className="px-3 py-2 text-left">Medicine</th>
-                <th className="px-3 py-2 text-left">Cat</th>
-                <th className="px-3 py-2 text-left">Distributor</th>
-                <th className="px-3 py-2 text-left">Batch</th>
-                <th className="px-3 py-2 text-right">Qty/Strip</th>
-                <th className="px-3 py-2 text-right">Stock</th>
-                <th className="px-3 py-2 text-right">Remaining</th>
-                <th className="px-3 py-2 text-left">Expiry</th>
-                <th className="px-3 py-2 text-right">MRP/Strip</th>
-                <th className="px-3 py-2 text-right">MRP/Tab</th>
-                <th className="px-3 py-2 text-right">PTR/Strip</th>
-                <th className="px-3 py-2 text-right">PTR/Tab</th>
-                <th className="px-3 py-2 text-right sticky right-0 z-10 bg-muted border-l">Edit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((m: any) => {
-                const low = m.remaining_stock < 10;
-                const expSoon = m.expiry_date && new Date(m.expiry_date) <= new Date(Date.now() + 30 * 86400000);
-                return (
-                  <tr key={m.id} className="border-t">
-                    <td className="px-3 py-2">{m.serial_number}</td>
-                    <td className="px-3 py-2 font-medium truncate" title={m.medicine_name}>{m.medicine_name}</td>
-                    <td className="px-3 py-2"><Badge variant="outline">{m.category || "GM"}</Badge></td>
-                    <td className="px-3 py-2 text-muted-foreground truncate" title={m.distributors?.distributor_name || ""}>{m.distributors?.distributor_name || "—"}</td>
-                    <td className="px-3 py-2 truncate" title={m.batch_no || ""}>{m.batch_no || "—"}</td>
-                    <td className="px-3 py-2 text-right">{m.pack_size || 10}</td>
-                    <td className="px-3 py-2 text-right">{m.stock}</td>
-                    <td className="px-3 py-2 text-right">
-                      {low ? <Badge variant="outline" className="bg-warning/20 text-warning-foreground border-warning">{m.remaining_stock}</Badge> : m.remaining_stock}
-                    </td>
-                    <td className="px-3 py-2">
-                      {m.expiry_date ? (expSoon ? <Badge variant="outline" className="bg-danger/20 text-danger border-danger">{m.expiry_date}</Badge> : m.expiry_date) : "—"}
-                    </td>
-                    <td className="px-3 py-2 text-right">₹{Number(m.mrp_per_strip).toFixed(2)}</td>
-                    <td className="px-3 py-2 text-right">₹{Number(m.mrp_per_tablet).toFixed(2)}</td>
-                    <td className="px-3 py-2 text-right">₹{Number(m.ptr_per_strip).toFixed(2)}</td>
-                    <td className="px-3 py-2 text-right">₹{Number(m.ptr_per_tablet).toFixed(2)}</td>
-                    <td className="px-3 py-2 sticky right-0 bg-card border-l z-10">
-                      <div className="flex gap-1 justify-end">
-                        <Button size="sm" variant="outline" onClick={() => { setEditing(m); setOpen(true); }}>
-                          <Pencil className="h-4 w-4" /> Edit
-                        </Button>
-                        <Button size="icon" variant="ghost" aria-label={`Delete ${m.medicine_name}`} onClick={() => remove(m.id)}><Trash2 className="h-4 w-4 text-danger" /></Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {!data.length && <tr><td colSpan={14} className="text-center py-12 text-muted-foreground">No medicines found.</td></tr>}
-            </tbody>
-          </table>
+        <CardContent className="p-0">
+          <div className="inventory-table-wrap overflow-auto max-h-[calc(100vh-260px)]">
+            <table className="w-full min-w-max text-sm inventory-table border-separate border-spacing-0">
+              <thead>
+                <tr>
+                  {visibleCols.map(c => {
+                    const active = sortBy === c.key;
+                    const alignClass = c.align === "right" ? "text-right" : "text-left";
+                    const stickyClass = c.sticky ? "sticky right-0 z-30 border-l" : "";
+                    return (
+                      <th
+                        key={c.key}
+                        className={`${c.width} ${alignClass} ${stickyClass} px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted sticky top-0 z-20 border-b`}
+                      >
+                        {c.sortable ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleSort(c.key)}
+                            className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${c.align === "right" ? "flex-row-reverse w-full justify-start" : ""}`}
+                          >
+                            <span>{c.label}</span>
+                            {active ? (sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-40" />}
+                          </button>
+                        ) : c.label}
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((m: any) => (
+                  <InventoryRow key={m.id} m={m} cols={visibleCols} onEdit={onEdit} onDelete={remove} />
+                ))}
+                {!sorted.length && (
+                  <tr><td colSpan={visibleCols.length} className="text-center py-12 text-muted-foreground">No medicines found.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 
@@ -171,6 +225,59 @@ function InventoryPage() {
     </div>
   );
 }
+
+const InventoryRow = memo(function InventoryRow({ m, cols, onEdit, onDelete }: { m: any; cols: ColumnDef[]; onEdit: (m: any) => void; onDelete: (id: string) => void; }) {
+  const low = m.remaining_stock < 10;
+  const expSoon = m.expiry_date && new Date(m.expiry_date) <= new Date(Date.now() + 30 * 86400000);
+
+  const cell = (c: ColumnDef) => {
+    switch (c.key) {
+      case "serial_number": return m.serial_number;
+      case "medicine_name": return <span className="font-medium">{m.medicine_name}</span>;
+      case "category": return <Badge variant="outline">{m.category || "GM"}</Badge>;
+      case "distributor": return <span className="text-muted-foreground">{m.distributors?.distributor_name || "—"}</span>;
+      case "batch_no": return m.batch_no || "—";
+      case "unit_type": return <span className="capitalize">{m.unit_type || "strip"}</span>;
+      case "pack_size": return m.pack_size || 10;
+      case "stock": return m.stock;
+      case "remaining_stock": return low
+        ? <Badge variant="outline" className="bg-warning/20 text-warning-foreground border-warning">{m.remaining_stock}</Badge>
+        : m.remaining_stock;
+      case "expiry_date": return m.expiry_date
+        ? (expSoon ? <Badge variant="outline" className="bg-danger/20 text-danger border-danger">{m.expiry_date}</Badge> : m.expiry_date)
+        : "—";
+      case "mrp_per_strip": return `₹${Number(m.mrp_per_strip).toFixed(2)}`;
+      case "mrp_per_tablet": return `₹${Number(m.mrp_per_tablet).toFixed(2)}`;
+      case "ptr_per_strip": return `₹${Number(m.ptr_per_strip).toFixed(2)}`;
+      case "ptr_per_tablet": return `₹${Number(m.ptr_per_tablet).toFixed(2)}`;
+      case "gst_percent": return `${Number(m.gst_percent || 0).toFixed(2)}%`;
+      case "edit": return (
+        <Button size="sm" variant="outline" onClick={() => onEdit(m)}>
+          <Pencil className="h-3.5 w-3.5 mr-1" />Edit
+        </Button>
+      );
+      case "delete": return (
+        <Button size="icon" variant="ghost" aria-label={`Delete ${m.medicine_name}`} onClick={() => onDelete(m.id)}>
+          <Trash2 className="h-4 w-4 text-danger" />
+        </Button>
+      );
+    }
+  };
+
+  return (
+    <tr className="border-b hover:bg-muted/30">
+      {cols.map(c => {
+        const alignClass = c.align === "right" ? "text-right" : "text-left";
+        const stickyClass = c.sticky ? "sticky right-0 z-10 bg-card border-l" : "";
+        return (
+          <td key={c.key} className={`px-3 py-2 border-b whitespace-nowrap ${alignClass} ${stickyClass}`}>
+            {cell(c)}
+          </td>
+        );
+      })}
+    </tr>
+  );
+});
 
 function InventoryFormDialog({ open, onOpenChange, item, onSaved }: any) {
   const [form, setForm] = useState<any>({});

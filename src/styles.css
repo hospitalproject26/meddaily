@@ -111,13 +111,12 @@
 .inventory-table-wrap {
   scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
+  contain: paint;
 }
 
-.inventory-table,
-.inventory-table th,
-.inventory-table td {
-  transform: translateZ(0);
-  backface-visibility: hidden;
+.inventory-table {
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .inventory-table th,
@@ -125,13 +124,14 @@
   white-space: nowrap;
 }
 
-.inventory-table tbody tr:hover td {
+.inventory-table tbody tr:hover td:not(.sticky) {
   background-color: color-mix(in oklab, var(--color-muted) 30%, transparent);
 }
 
 .inventory-table tbody tr:hover td.sticky {
-  background-color: var(--color-card);
+  background-color: color-mix(in oklab, var(--color-muted) 30%, var(--color-card));
 }
+
 
 @media print {
   body * { visibility: hidden; }
