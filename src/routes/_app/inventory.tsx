@@ -46,6 +46,9 @@ function InventoryPage() {
       if (error) throw error;
       return data ?? [];
     },
+    placeholderData: (previousData) => previousData ?? [],
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   const remove = async (id: string) => {
@@ -88,8 +91,24 @@ function InventoryPage() {
       </div>
 
       <Card>
-        <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
+        <CardContent className="p-0 overflow-x-auto inventory-table-wrap">
+          <table className="w-full min-w-[1180px] table-fixed text-sm inventory-table">
+            <colgroup>
+              <col className="w-16" />
+              <col className="w-48" />
+              <col className="w-20" />
+              <col className="w-44" />
+              <col className="w-28" />
+              <col className="w-24" />
+              <col className="w-20" />
+              <col className="w-24" />
+              <col className="w-28" />
+              <col className="w-28" />
+              <col className="w-28" />
+              <col className="w-28" />
+              <col className="w-28" />
+              <col className="w-32" />
+            </colgroup>
             <thead className="text-xs uppercase text-muted-foreground bg-muted/40">
               <tr>
                 <th className="px-3 py-2 text-left">S/N</th>
@@ -105,7 +124,7 @@ function InventoryPage() {
                 <th className="px-3 py-2 text-right">MRP/Tab</th>
                 <th className="px-3 py-2 text-right">PTR/Strip</th>
                 <th className="px-3 py-2 text-right">PTR/Tab</th>
-                <th></th>
+                <th className="px-3 py-2 text-right sticky right-0 z-10 bg-muted border-l">Edit</th>
               </tr>
             </thead>
             <tbody>
@@ -113,12 +132,12 @@ function InventoryPage() {
                 const low = m.remaining_stock < 10;
                 const expSoon = m.expiry_date && new Date(m.expiry_date) <= new Date(Date.now() + 30 * 86400000);
                 return (
-                  <tr key={m.id} className="border-t hover:bg-muted/30">
+                  <tr key={m.id} className="border-t">
                     <td className="px-3 py-2">{m.serial_number}</td>
-                    <td className="px-3 py-2 font-medium">{m.medicine_name}</td>
+                    <td className="px-3 py-2 font-medium truncate" title={m.medicine_name}>{m.medicine_name}</td>
                     <td className="px-3 py-2"><Badge variant="outline">{m.category || "GM"}</Badge></td>
-                    <td className="px-3 py-2 text-muted-foreground">{m.distributors?.distributor_name || "—"}</td>
-                    <td className="px-3 py-2">{m.batch_no || "—"}</td>
+                    <td className="px-3 py-2 text-muted-foreground truncate" title={m.distributors?.distributor_name || ""}>{m.distributors?.distributor_name || "—"}</td>
+                    <td className="px-3 py-2 truncate" title={m.batch_no || ""}>{m.batch_no || "—"}</td>
                     <td className="px-3 py-2 text-right">{m.pack_size || 10}</td>
                     <td className="px-3 py-2 text-right">{m.stock}</td>
                     <td className="px-3 py-2 text-right">
@@ -131,10 +150,12 @@ function InventoryPage() {
                     <td className="px-3 py-2 text-right">₹{Number(m.mrp_per_tablet).toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">₹{Number(m.ptr_per_strip).toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">₹{Number(m.ptr_per_tablet).toFixed(2)}</td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2 sticky right-0 bg-card border-l z-10">
                       <div className="flex gap-1 justify-end">
-                        <Button size="icon" variant="ghost" onClick={() => { setEditing(m); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => remove(m.id)}><Trash2 className="h-4 w-4 text-danger" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => { setEditing(m); setOpen(true); }}>
+                          <Pencil className="h-4 w-4" /> Edit
+                        </Button>
+                        <Button size="icon" variant="ghost" aria-label={`Delete ${m.medicine_name}`} onClick={() => remove(m.id)}><Trash2 className="h-4 w-4 text-danger" /></Button>
                       </div>
                     </td>
                   </tr>
