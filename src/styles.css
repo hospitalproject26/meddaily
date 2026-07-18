@@ -108,6 +108,31 @@
   }
 }
 
+.inventory-table-wrap {
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.inventory-table,
+.inventory-table th,
+.inventory-table td {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.inventory-table th,
+.inventory-table td {
+  white-space: nowrap;
+}
+
+.inventory-table tbody tr:hover td {
+  background-color: color-mix(in oklab, var(--color-muted) 30%, transparent);
+}
+
+.inventory-table tbody tr:hover td.sticky {
+  background-color: var(--color-card);
+}
+
 @media print {
   body * { visibility: hidden; }
   #receipt-body, #receipt-body * { visibility: visible; }
