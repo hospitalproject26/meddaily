@@ -37,7 +37,7 @@ export type Database = {
           phone_number?: string | null
           regular_medicines?: string | null
           remark?: string | null
-          shop_id: string
+          shop_id?: string
         }
         Update: {
           address?: string | null
@@ -91,7 +91,7 @@ export type Database = {
           mrp_per_strip?: number
           ptr_per_strip?: number
           quantity?: number
-          shop_id: string
+          shop_id?: string
           total_amount?: number
         }
         Update: {
@@ -156,7 +156,7 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           notes?: string | null
-          shop_id: string
+          shop_id?: string
           total_amount?: number
         }
         Update: {
@@ -205,7 +205,7 @@ export type Database = {
           id?: string
           medicines_available?: string | null
           mobile_number?: string | null
-          shop_id: string
+          shop_id?: string
         }
         Update: {
           address?: string | null
@@ -263,7 +263,7 @@ export type Database = {
           ptr_per_tablet?: number
           remaining_stock?: number
           serial_number?: number
-          shop_id: string
+          shop_id?: string
           stock?: number
           unit_type?: string
         }
@@ -336,7 +336,7 @@ export type Database = {
           mrp: number
           order_id: string
           quantity_sold: number
-          shop_id: string
+          shop_id?: string
           unit_type?: string
         }
         Update: {
@@ -413,7 +413,7 @@ export type Database = {
           mobile_number?: string | null
           payment_method?: string
           received_amount?: number
-          shop_id: string
+          shop_id?: string
           total_amount?: number
           total_discount?: number
           total_profit?: number
