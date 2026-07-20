@@ -19,6 +19,7 @@ import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
 import { Route as AppDistributorsRouteImport } from './routes/_app/distributors'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppBillingRouteImport } from './routes/_app/billing'
+import { Route as AppAdminRouteImport } from './routes/_app/admin'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -69,10 +70,16 @@ const AppBillingRoute = AppBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/admin': typeof AppAdminRoute
   '/billing': typeof AppBillingRoute
   '/customers': typeof AppCustomersRoute
   '/distributors': typeof AppDistributorsRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/admin': typeof AppAdminRoute
   '/billing': typeof AppBillingRoute
   '/customers': typeof AppCustomersRoute
   '/distributors': typeof AppDistributorsRoute
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/admin': typeof AppAdminRoute
   '/_app/billing': typeof AppBillingRoute
   '/_app/customers': typeof AppCustomersRoute
   '/_app/distributors': typeof AppDistributorsRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/admin'
     | '/billing'
     | '/customers'
     | '/distributors'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/admin'
     | '/billing'
     | '/customers'
     | '/distributors'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/login'
+    | '/_app/admin'
     | '/_app/billing'
     | '/_app/customers'
     | '/_app/distributors'
@@ -219,10 +231,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBillingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRoute
   AppBillingRoute: typeof AppBillingRoute
   AppCustomersRoute: typeof AppCustomersRoute
   AppDistributorsRoute: typeof AppDistributorsRoute
@@ -234,6 +254,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRoute,
   AppBillingRoute: AppBillingRoute,
   AppCustomersRoute: AppCustomersRoute,
   AppDistributorsRoute: AppDistributorsRoute,
@@ -253,13 +274,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

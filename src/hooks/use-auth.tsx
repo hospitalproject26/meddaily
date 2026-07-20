@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "Owner" | "Staff";
+export type AppRole = "Owner" | "Staff" | "SuperAdmin";
 
 interface AuthState {
   user: User | null;
@@ -23,13 +23,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const pickRole = (rows: { role: string }[] | null): AppRole | null => {
+      if (!rows || rows.length === 0) return null;
+      const roles = rows.map((r) => r.role);
+      if (roles.includes("SuperAdmin")) return "SuperAdmin";
+      if (roles.includes("Owner")) return "Owner";
+      if (roles.includes("Staff")) return "Staff";
+      return null;
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
         setTimeout(async () => {
-          const { data } = await supabase.from("user_roles").select("role").eq("user_id", s.user.id).maybeSingle();
-          setRole((data?.role as AppRole) ?? null);
+          const { data } = await supabase.from("user_roles").select("role").eq("user_id", s.user.id);
+          setRole(pickRole(data as { role: string }[] | null));
         }, 0);
       } else {
         setRole(null);
@@ -40,8 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        const { data } = await supabase.from("user_roles").select("role").eq("user_id", s.user.id).maybeSingle();
-        setRole((data?.role as AppRole) ?? null);
+        const { data } = await supabase.from("user_roles").select("role").eq("user_id", s.user.id);
+        setRole(pickRole(data as { role: string }[] | null));
       }
       setLoading(false);
     });
