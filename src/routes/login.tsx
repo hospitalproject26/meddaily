@@ -56,7 +56,7 @@ function LoginPage() {
           </p>
         </div>
         <div className="text-sm text-primary-foreground/70">
-          The first account becomes the Owner. Additional sign-ups become Staff.
+          New sign-ups stay pending until a SuperAdmin assigns you to a pharmacy.
         </div>
       </div>
       <div className="flex items-center justify-center p-6 sm:p-12 bg-background">
