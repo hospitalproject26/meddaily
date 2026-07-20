@@ -575,6 +575,16 @@ export type Database = {
       }
       is_shop_admin: { Args: { _shop_id: string }; Returns: boolean }
       is_shop_member: { Args: { _shop_id: string }; Returns: boolean }
+      list_pending_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }[]
+      }
+      my_assignment_status: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "Owner" | "Staff" | "SuperAdmin"
