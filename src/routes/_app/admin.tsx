@@ -483,7 +483,7 @@ function AssignDialog({ open, onOpenChange, user, onDone }: {
   const { data: shops = [] } = useQuery({
     queryKey: ["admin-shops-active"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shops").select("id, name, is_active").eq("is_active", true).order("name");
+      const { data, error } = await supabase.from("shops").select("id, code, name, is_active").eq("is_active", true).order("name");
       if (error) throw error;
       return data ?? [];
     },
@@ -525,7 +525,7 @@ function AssignDialog({ open, onOpenChange, user, onDone }: {
               <SelectTrigger><SelectValue placeholder="Select a pharmacy" /></SelectTrigger>
               <SelectContent>
                 {shops.map((s: { id: string; name: string }) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  <SelectItem key={s.id} value={s.id}>{(s as {code?: string}).code ? `${(s as {code?: string}).code} · ` : ""}{s.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -559,7 +559,7 @@ function TransferDialog({ open, onOpenChange, member, profile, onDone }: {
   const { data: shops = [] } = useQuery({
     queryKey: ["admin-shops-active"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shops").select("id, name, is_active").eq("is_active", true).order("name");
+      const { data, error } = await supabase.from("shops").select("id, code, name, is_active").eq("is_active", true).order("name");
       if (error) throw error;
       return data ?? [];
     },
@@ -597,7 +597,7 @@ function TransferDialog({ open, onOpenChange, member, profile, onDone }: {
               <SelectTrigger><SelectValue placeholder="Select pharmacy" /></SelectTrigger>
               <SelectContent>
                 {shops.map((s: { id: string; name: string }) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  <SelectItem key={s.id} value={s.id}>{(s as {code?: string}).code ? `${(s as {code?: string}).code} · ` : ""}{s.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
