@@ -278,11 +278,12 @@ function UsersPanel() {
   const { data: shops = [] } = useQuery({
     queryKey: ["admin-shops"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shops").select("id, name, plan, is_active, created_at, owner_user_id");
+      const { data, error } = await supabase.from("shops").select("id, code, name, plan, is_active, created_at, owner_user_id, owner_name, email, phone");
       if (error) throw error;
       return (data ?? []) as Shop[];
     },
   });
+
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["admin-profiles"],
