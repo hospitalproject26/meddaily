@@ -2,10 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrentShop } from "@/hooks/use-current-shop";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Search, FileDown } from "lucide-react";
 
 export const Route = createFileRoute("/_app/sales")({
@@ -16,6 +18,7 @@ function SalesHistoryPage() {
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const { data: shop } = useCurrentShop();
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["sales-history", search, from, to],
