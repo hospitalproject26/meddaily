@@ -12,6 +12,7 @@ import { Plus, Trash2, Printer, Search, UserPlus, ScanLine, Loader2, FileDown, S
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { scanPrescription } from "@/lib/billing.functions";
+import { useCurrentShop, type CurrentShop } from "@/hooks/use-current-shop";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -19,12 +20,23 @@ export const Route = createFileRoute("/_app/billing")({
   component: BillingPage,
 });
 
-const PHARMACY = {
+const PHARMACY_FALLBACK = {
   name: "Smart Pharmacy",
+  code: "",
   address: "—",
   phone: "—",
   gstin: "",
 };
+
+function pharmacyInfo(shop: CurrentShop | null | undefined) {
+  return {
+    name: shop?.name || PHARMACY_FALLBACK.name,
+    code: shop?.code || "",
+    address: PHARMACY_FALLBACK.address,
+    phone: shop?.phone || PHARMACY_FALLBACK.phone,
+    gstin: PHARMACY_FALLBACK.gstin,
+  };
+}
 
 type Unit = "strip" | "tablet" | "bottle" | "tube" | "injection" | "other";
 type DiscMode = "percent" | "amount";
@@ -86,6 +98,7 @@ function availableUnitsFor(inv: any): Unit[] {
 
 function BillingPage() {
   const qc = useQueryClient();
+  const { data: shop } = useCurrentShop();
   const [customerName, setCustomerName] = useState("");
   const [mobile, setMobile] = useState("");
   const [address, setAddress] = useState("");
