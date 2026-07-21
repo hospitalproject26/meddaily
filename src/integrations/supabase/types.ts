@@ -510,29 +510,41 @@ export type Database = {
       }
       shops: {
         Row: {
+          code: string
           created_at: string
+          email: string | null
           id: string
           is_active: boolean
           name: string
+          owner_name: string | null
           owner_user_id: string | null
+          phone: string | null
           plan: string
           updated_at: string
         }
         Insert: {
+          code: string
           created_at?: string
+          email?: string | null
           id?: string
           is_active?: boolean
           name: string
+          owner_name?: string | null
           owner_user_id?: string | null
+          phone?: string | null
           plan?: string
           updated_at?: string
         }
         Update: {
+          code?: string
           created_at?: string
+          email?: string | null
           id?: string
           is_active?: boolean
           name?: string
+          owner_name?: string | null
           owner_user_id?: string | null
+          phone?: string | null
           plan?: string
           updated_at?: string
         }
@@ -562,6 +574,7 @@ export type Database = {
     }
     Functions: {
       current_shop_id: { Args: never; Returns: string }
+      generate_shop_code: { Args: { _name: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

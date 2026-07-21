@@ -24,12 +24,17 @@ export const Route = createFileRoute("/_app/admin")({
 
 type Shop = {
   id: string;
+  code: string;
   name: string;
   plan: string | null;
   is_active: boolean;
   created_at: string;
   owner_user_id: string | null;
+  owner_name: string | null;
+  email: string | null;
+  phone: string | null;
 };
+
 
 type PendingUser = { id: string; email: string | null; name: string | null; created_at: string };
 type Member = { id: string; user_id: string; shop_id: string; role: string; created_at: string };
@@ -80,12 +85,13 @@ function ShopsPanel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shops")
-        .select("id, name, plan, is_active, created_at, owner_user_id")
+        .select("id, code, name, plan, is_active, created_at, owner_user_id, owner_name, email, phone")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Shop[];
     },
   });
+
 
   const { data: memberCounts = {} } = useQuery({
     queryKey: ["admin-shop-member-counts"],
@@ -136,7 +142,10 @@ function ShopsPanel() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr className="text-left">
+                  <th className="p-3 font-medium">Pharmacy ID</th>
                   <th className="p-3 font-medium">Name</th>
+                  <th className="p-3 font-medium">Owner</th>
+                  <th className="p-3 font-medium">Contact</th>
                   <th className="p-3 font-medium">Plan</th>
                   <th className="p-3 font-medium">Members</th>
                   <th className="p-3 font-medium">Status</th>
@@ -145,11 +154,17 @@ function ShopsPanel() {
                 </tr>
               </thead>
               <tbody>
-                {isLoading && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Loading…</td></tr>}
-                {!isLoading && shops.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No shops yet.</td></tr>}
+                {isLoading && <tr><td colSpan={9} className="p-6 text-center text-muted-foreground">Loading…</td></tr>}
+                {!isLoading && shops.length === 0 && <tr><td colSpan={9} className="p-6 text-center text-muted-foreground">No shops yet.</td></tr>}
                 {shops.map((s) => (
                   <tr key={s.id} className="border-t">
+                    <td className="p-3"><Badge variant="outline" className="font-mono">{s.code}</Badge></td>
                     <td className="p-3 font-medium">{s.name}</td>
+                    <td className="p-3 text-muted-foreground">{s.owner_name ?? "—"}</td>
+                    <td className="p-3 text-muted-foreground text-xs">
+                      <div>{s.email ?? "—"}</div>
+                      <div>{s.phone ?? ""}</div>
+                    </td>
                     <td className="p-3 text-muted-foreground">{s.plan ?? "free"}</td>
                     <td className="p-3">{memberCounts[s.id] ?? 0}</td>
                     <td className="p-3">
@@ -173,6 +188,7 @@ function ShopsPanel() {
                     </td>
                   </tr>
                 ))}
+
               </tbody>
             </table>
           </div>
@@ -272,11 +288,12 @@ function UsersPanel() {
   const { data: shops = [] } = useQuery({
     queryKey: ["admin-shops"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shops").select("id, name, plan, is_active, created_at, owner_user_id");
+      const { data, error } = await supabase.from("shops").select("id, code, name, plan, is_active, created_at, owner_user_id, owner_name, email, phone");
       if (error) throw error;
       return (data ?? []) as Shop[];
     },
   });
+
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["admin-profiles"],
@@ -383,22 +400,39 @@ function ShopFormDialog({ open, onOpenChange, shop, onSaved }: {
 }) {
   const [name, setName] = useState("");
   const [plan, setPlan] = useState("free");
+  const [ownerName, setOwnerName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open) { setName(shop?.name ?? ""); setPlan(shop?.plan ?? "free"); }
+    if (open) {
+      setName(shop?.name ?? "");
+      setPlan(shop?.plan ?? "free");
+      setOwnerName(shop?.owner_name ?? "");
+      setEmail(shop?.email ?? "");
+      setPhone(shop?.phone ?? "");
+    }
   }, [open, shop]);
 
   const save = async () => {
     if (!name.trim()) return toast.error("Name required");
     setSaving(true);
     try {
+      const payload = {
+        name: name.trim(),
+        plan,
+        owner_name: ownerName.trim() || null,
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+      };
       if (shop) {
-        const { error } = await supabase.from("shops").update({ name: name.trim(), plan }).eq("id", shop.id);
+        const { error } = await supabase.from("shops").update(payload).eq("id", shop.id);
         if (error) throw error;
         toast.success("Shop updated");
       } else {
-        const { error } = await supabase.from("shops").insert({ name: name.trim(), plan });
+        // `code` is auto-generated by the DB trigger; pass empty string to satisfy types.
+        const { error } = await supabase.from("shops").insert({ ...payload, code: "" });
         if (error) throw error;
         toast.success("Shop created");
       }
@@ -412,9 +446,21 @@ function ShopFormDialog({ open, onOpenChange, shop, onSaved }: {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader><DialogTitle>{shop ? "Edit Shop" : "New Shop"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{shop ? `Edit Pharmacy · ${shop.code}` : "New Pharmacy"}</DialogTitle>
+        </DialogHeader>
         <div className="space-y-4">
-          <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Pharmacy name" /></div>
+          {shop && (
+            <div className="text-xs text-muted-foreground">
+              Pharmacy ID: <span className="font-mono font-medium text-foreground">{shop.code}</span> (auto-generated, cannot be changed)
+            </div>
+          )}
+          <div><Label>Pharmacy Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. SRH Medicals" /></div>
+          <div><Label>Owner Name</Label><Input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Owner full name" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="owner@pharmacy.com" /></div>
+            <div><Label>Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 …" /></div>
+          </div>
           <div><Label>Plan</Label><Input value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="free / pro / enterprise" /></div>
         </div>
         <DialogFooter>
@@ -426,6 +472,7 @@ function ShopFormDialog({ open, onOpenChange, shop, onSaved }: {
   );
 }
 
+
 function AssignDialog({ open, onOpenChange, user, onDone }: {
   open: boolean; onOpenChange: (v: boolean) => void; user: PendingUser | null; onDone: () => void;
 }) {
@@ -436,7 +483,7 @@ function AssignDialog({ open, onOpenChange, user, onDone }: {
   const { data: shops = [] } = useQuery({
     queryKey: ["admin-shops-active"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shops").select("id, name, is_active").eq("is_active", true).order("name");
+      const { data, error } = await supabase.from("shops").select("id, code, name, is_active").eq("is_active", true).order("name");
       if (error) throw error;
       return data ?? [];
     },
@@ -477,8 +524,8 @@ function AssignDialog({ open, onOpenChange, user, onDone }: {
             <Select value={shopId} onValueChange={setShopId}>
               <SelectTrigger><SelectValue placeholder="Select a pharmacy" /></SelectTrigger>
               <SelectContent>
-                {shops.map((s: { id: string; name: string }) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                {shops.map((s: { id: string; name: string; code?: string }) => (
+                  <SelectItem key={s.id} value={s.id}>{(s as {code?: string}).code ? `${(s as {code?: string}).code} · ` : ""}{s.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -512,7 +559,7 @@ function TransferDialog({ open, onOpenChange, member, profile, onDone }: {
   const { data: shops = [] } = useQuery({
     queryKey: ["admin-shops-active"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shops").select("id, name, is_active").eq("is_active", true).order("name");
+      const { data, error } = await supabase.from("shops").select("id, code, name, is_active").eq("is_active", true).order("name");
       if (error) throw error;
       return data ?? [];
     },
@@ -549,8 +596,8 @@ function TransferDialog({ open, onOpenChange, member, profile, onDone }: {
             <Select value={shopId} onValueChange={setShopId}>
               <SelectTrigger><SelectValue placeholder="Select pharmacy" /></SelectTrigger>
               <SelectContent>
-                {shops.map((s: { id: string; name: string }) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                {shops.map((s: { id: string; name: string; code?: string }) => (
+                  <SelectItem key={s.id} value={s.id}>{(s as {code?: string}).code ? `${(s as {code?: string}).code} · ` : ""}{s.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
