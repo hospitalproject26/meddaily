@@ -524,7 +524,7 @@ function AssignDialog({ open, onOpenChange, user, onDone }: {
             <Select value={shopId} onValueChange={setShopId}>
               <SelectTrigger><SelectValue placeholder="Select a pharmacy" /></SelectTrigger>
               <SelectContent>
-                {shops.map((s: { id: string; name: string }) => (
+                {shops.map((s: { id: string; name: string; code?: string }) => (
                   <SelectItem key={s.id} value={s.id}>{(s as {code?: string}).code ? `${(s as {code?: string}).code} · ` : ""}{s.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -596,7 +596,7 @@ function TransferDialog({ open, onOpenChange, member, profile, onDone }: {
             <Select value={shopId} onValueChange={setShopId}>
               <SelectTrigger><SelectValue placeholder="Select pharmacy" /></SelectTrigger>
               <SelectContent>
-                {shops.map((s: { id: string; name: string }) => (
+                {shops.map((s: { id: string; name: string; code?: string }) => (
                   <SelectItem key={s.id} value={s.id}>{(s as {code?: string}).code ? `${(s as {code?: string}).code} · ` : ""}{s.name}</SelectItem>
                 ))}
               </SelectContent>
