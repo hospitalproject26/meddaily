@@ -85,12 +85,13 @@ function ShopsPanel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shops")
-        .select("id, name, plan, is_active, created_at, owner_user_id")
+        .select("id, code, name, plan, is_active, created_at, owner_user_id, owner_name, email, phone")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Shop[];
     },
   });
+
 
   const { data: memberCounts = {} } = useQuery({
     queryKey: ["admin-shop-member-counts"],
