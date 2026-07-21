@@ -41,8 +41,10 @@ function SalesHistoryPage() {
 
   const exportCsv = () => {
     const rows = [
-      ["Invoice", "Date", "Customer", "Mobile", "Items", "Subtotal", "Discount", "GST", "Total", "Profit", "Payment"],
+      ["Pharmacy ID", "Pharmacy", "Invoice", "Date", "Customer", "Mobile", "Items", "Subtotal", "Discount", "GST", "Total", "Profit", "Payment"],
       ...orders.map((o: any) => [
+        shop?.code || "",
+        shop?.name || "",
         o.invoice_number || o.id,
         new Date(o.date).toLocaleString(),
         o.customer_name || "",
@@ -55,7 +57,7 @@ function SalesHistoryPage() {
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `sales-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.href = url; a.download = `sales-${shop?.code || "all"}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click(); URL.revokeObjectURL(url);
   };
 
@@ -63,11 +65,17 @@ function SalesHistoryPage() {
     <div className="space-y-6 max-w-7xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Sales History</h1>
-          <p className="text-sm text-muted-foreground">All past bills with filters.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold">Sales History</h1>
+            {shop?.code && <Badge variant="outline" className="font-mono text-xs">{shop.code}</Badge>}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {shop?.name ? `${shop.name} · ` : ""}All past bills with filters.
+          </p>
         </div>
         <Button variant="outline" onClick={exportCsv}><FileDown className="h-4 w-4 mr-2" />Export CSV</Button>
       </div>
+
 
       <div className="grid sm:grid-cols-3 gap-3">
         <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Orders</div><div className="text-2xl font-bold">{totals.count}</div></CardContent></Card>
