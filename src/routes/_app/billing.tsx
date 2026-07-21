@@ -12,6 +12,7 @@ import { Plus, Trash2, Printer, Search, UserPlus, ScanLine, Loader2, FileDown, S
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { scanPrescription } from "@/lib/billing.functions";
+import { useCurrentShop, type CurrentShop } from "@/hooks/use-current-shop";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -19,12 +20,23 @@ export const Route = createFileRoute("/_app/billing")({
   component: BillingPage,
 });
 
-const PHARMACY = {
+const PHARMACY_FALLBACK = {
   name: "Smart Pharmacy",
+  code: "",
   address: "—",
   phone: "—",
   gstin: "",
 };
+
+function pharmacyInfo(shop: CurrentShop | null | undefined) {
+  return {
+    name: shop?.name || PHARMACY_FALLBACK.name,
+    code: shop?.code || "",
+    address: PHARMACY_FALLBACK.address,
+    phone: shop?.phone || PHARMACY_FALLBACK.phone,
+    gstin: PHARMACY_FALLBACK.gstin,
+  };
+}
 
 type Unit = "strip" | "tablet" | "bottle" | "tube" | "injection" | "other";
 type DiscMode = "percent" | "amount";
@@ -86,6 +98,7 @@ function availableUnitsFor(inv: any): Unit[] {
 
 function BillingPage() {
   const qc = useQueryClient();
+  const { data: shop } = useCurrentShop();
   const [customerName, setCustomerName] = useState("");
   const [mobile, setMobile] = useState("");
   const [address, setAddress] = useState("");
@@ -519,7 +532,7 @@ function BillingPage() {
         </CardContent>
       </Card>
 
-      <ReceiptModal receipt={receipt} onClose={() => setReceipt(null)} />
+      <ReceiptModal receipt={receipt} shop={shop} onClose={() => setReceipt(null)} />
     </div>
   );
 }
@@ -559,9 +572,10 @@ function QuickAddCustomer({ open, onOpenChange, onAdded }: { open: boolean; onOp
   );
 }
 
-function buildBillText(r: any): string {
+function buildBillText(r: any, shop: CurrentShop | null | undefined): string {
+  const p = pharmacyInfo(shop);
   const lines = [
-    `*${PHARMACY.name}*`,
+    `*${p.name}*${p.code ? ` (${p.code})` : ""}`,
     `Invoice: ${r.order.invoice_number}`,
     `Date: ${new Date(r.order.date).toLocaleString()}`,
     `Customer: ${r.order.customer_name}${r.order.mobile_number ? ` (${r.order.mobile_number})` : ""}`,
@@ -576,19 +590,21 @@ function buildBillText(r: any): string {
   return lines.join("\n");
 }
 
-function downloadPdf(r: any) {
+function downloadPdf(r: any, shop: CurrentShop | null | undefined) {
+  const p = pharmacyInfo(shop);
   const doc = new jsPDF();
-  doc.setFontSize(16); doc.text(PHARMACY.name, 14, 18);
+  doc.setFontSize(16); doc.text(p.name, 14, 18);
   doc.setFontSize(9);
-  doc.text(`${PHARMACY.address} · ${PHARMACY.phone}`, 14, 24);
-  if (PHARMACY.gstin) doc.text(`GSTIN: ${PHARMACY.gstin}`, 14, 29);
+  if (p.code) doc.text(`Pharmacy ID: ${p.code}`, 14, 24);
+  doc.text(`${p.address} · ${p.phone}`, 14, p.code ? 29 : 24);
+  if (p.gstin) doc.text(`GSTIN: ${p.gstin}`, 14, p.code ? 34 : 29);
   doc.setFontSize(11);
-  doc.text(`Invoice: ${r.order.invoice_number}`, 14, 40);
-  doc.text(`Date: ${new Date(r.order.date).toLocaleString()}`, 120, 40);
-  doc.text(`Customer: ${r.order.customer_name}`, 14, 47);
-  if (r.order.mobile_number) doc.text(`Mob: ${r.order.mobile_number}`, 120, 47);
+  doc.text(`Invoice: ${r.order.invoice_number}`, 14, 44);
+  doc.text(`Date: ${new Date(r.order.date).toLocaleString()}`, 120, 44);
+  doc.text(`Customer: ${r.order.customer_name}`, 14, 51);
+  if (r.order.mobile_number) doc.text(`Mob: ${r.order.mobile_number}`, 120, 51);
   autoTable(doc, {
-    startY: 55,
+    startY: 58,
     head: [["Medicine", "Batch", "Unit", "Qty", "MRP", "Disc", "GST", "Total"]],
     body: r.items.map((it: LineItem) => [
       it.medicine_name, it.batch_no || "—", it.unit, it.quantity,
@@ -603,12 +619,13 @@ function downloadPdf(r: any) {
   doc.text(`GST:      + ₹${r.totals.gst.toFixed(2)}`, 130, y + 12);
   doc.setFontSize(13);
   doc.text(`Grand:    ₹${r.totals.total.toFixed(2)}`, 130, y + 20);
-  doc.save(`${r.order.invoice_number}.pdf`);
+  doc.save(`${p.code ? p.code + "-" : ""}${r.order.invoice_number}.pdf`);
 }
 
-function ReceiptModal({ receipt, onClose }: { receipt: any; onClose: () => void }) {
+function ReceiptModal({ receipt, shop, onClose }: { receipt: any; shop: CurrentShop | null | undefined; onClose: () => void }) {
   if (!receipt) return null;
-  const sharePayload = () => buildBillText(receipt);
+  const p = pharmacyInfo(shop);
+  const sharePayload = () => buildBillText(receipt, shop);
 
   const onWhatsapp = () => {
     const text = encodeURIComponent(sharePayload());
@@ -628,9 +645,10 @@ function ReceiptModal({ receipt, onClose }: { receipt: any; onClose: () => void 
         <DialogHeader><DialogTitle>Receipt</DialogTitle></DialogHeader>
         <div id="receipt-body" className="space-y-3 text-sm print:text-xs">
           <div className="text-center border-b pb-3">
-            <div className="font-bold text-lg">{PHARMACY.name}</div>
-            <div className="text-xs text-muted-foreground">{PHARMACY.address} · {PHARMACY.phone}</div>
-            {PHARMACY.gstin && <div className="text-xs">GSTIN: {PHARMACY.gstin}</div>}
+            <div className="font-bold text-lg">{p.name}</div>
+            {p.code && <div className="text-xs font-mono text-muted-foreground">Pharmacy ID: {p.code}</div>}
+            <div className="text-xs text-muted-foreground">{p.address} · {p.phone}</div>
+            {p.gstin && <div className="text-xs">GSTIN: {p.gstin}</div>}
             <div className="text-xs mt-1">Invoice <b>{receipt.order.invoice_number}</b> · {new Date(receipt.order.date).toLocaleString()}</div>
           </div>
           <div>
@@ -665,7 +683,7 @@ function ReceiptModal({ receipt, onClose }: { receipt: any; onClose: () => void 
         <DialogFooter className="flex-wrap gap-2 print:hidden">
           <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" />Print</Button>
-          <Button variant="outline" size="sm" onClick={() => downloadPdf(receipt)}><FileDown className="h-4 w-4 mr-1" />PDF</Button>
+          <Button variant="outline" size="sm" onClick={() => downloadPdf(receipt, shop)}><FileDown className="h-4 w-4 mr-1" />PDF</Button>
           <Button variant="outline" size="sm" onClick={onShare}><Share2 className="h-4 w-4 mr-1" />Share</Button>
           <Button size="sm" onClick={onWhatsapp}><MessageCircle className="h-4 w-4 mr-1" />WhatsApp</Button>
         </DialogFooter>
@@ -673,3 +691,4 @@ function ReceiptModal({ receipt, onClose }: { receipt: any; onClose: () => void 
     </Dialog>
   );
 }
+

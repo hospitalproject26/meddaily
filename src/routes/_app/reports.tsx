@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RequireRole } from "@/components/AuthGate";
+import { useCurrentShop } from "@/hooks/use-current-shop";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
@@ -16,6 +18,7 @@ type Range = "day" | "month" | "year";
 
 function ReportsPage() {
   const [range, setRange] = useState<Range>("day");
+  const { data: shop } = useCurrentShop();
 
   const { data: orders = [] } = useQuery({
     queryKey: ["reports", range],
@@ -54,8 +57,13 @@ function ReportsPage() {
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Reports</h1>
-        <p className="text-sm text-muted-foreground">Revenue, profit, and orders over time.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Reports</h1>
+          {shop?.code && <Badge variant="outline" className="font-mono text-xs">{shop.code}</Badge>}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {shop?.name ? `${shop.name} · ` : ""}Revenue, profit, and orders over time.
+        </p>
       </div>
 
       <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>

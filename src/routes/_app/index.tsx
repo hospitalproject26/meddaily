@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useCurrentShop } from "@/hooks/use-current-shop";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { IndianRupee, ShoppingCart, TrendingUp, AlertTriangle, Calendar } from "lucide-react";
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/_app/")({
 
 function Dashboard() {
   const { role } = useAuth();
+  const { data: shop } = useCurrentShop();
   const isOwner = role === "Owner";
 
   const { data: today } = useQuery({
@@ -67,8 +69,15 @@ function Dashboard() {
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Today's overview at a glance.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+          {shop?.code && (
+            <Badge variant="outline" className="font-mono text-xs">{shop.code}</Badge>
+          )}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {shop?.name ? `${shop.name} · ` : ""}Today's overview at a glance.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
