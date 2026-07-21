@@ -532,7 +532,7 @@ function BillingPage() {
         </CardContent>
       </Card>
 
-      <ReceiptModal receipt={receipt} onClose={() => setReceipt(null)} />
+      <ReceiptModal receipt={receipt} shop={shop} onClose={() => setReceipt(null)} />
     </div>
   );
 }
