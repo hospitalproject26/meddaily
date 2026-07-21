@@ -24,12 +24,17 @@ export const Route = createFileRoute("/_app/admin")({
 
 type Shop = {
   id: string;
+  code: string;
   name: string;
   plan: string | null;
   is_active: boolean;
   created_at: string;
   owner_user_id: string | null;
+  owner_name: string | null;
+  email: string | null;
+  phone: string | null;
 };
+
 
 type PendingUser = { id: string; email: string | null; name: string | null; created_at: string };
 type Member = { id: string; user_id: string; shop_id: string; role: string; created_at: string };
