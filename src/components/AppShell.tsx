@@ -31,6 +31,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const items = NAV.filter((n) => role && n.roles.includes(role));
+  const { data: shop } = useCurrentShop();
 
   const handleSignOut = async () => {
     await signOut();
@@ -45,9 +46,11 @@ export function AppShell() {
           <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
             <Pill className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div>
-            <div className="font-bold text-sm leading-tight">Smart Pharmacy</div>
-            <div className="text-xs text-muted-foreground">Manager</div>
+          <div className="min-w-0">
+            <div className="font-bold text-sm leading-tight truncate">{shop?.name || "Smart Pharmacy"}</div>
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+              {shop?.code ? <Badge variant="outline" className="font-mono text-[10px] py-0 px-1.5">{shop.code}</Badge> : "Manager"}
+            </div>
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1">
@@ -84,11 +87,12 @@ export function AppShell() {
       {/* Main */}
       <main className="flex-1 md:ml-64 pb-20 md:pb-0">
         <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card sticky top-0 z-10">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
               <Pill className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-sm">Smart Pharmacy</span>
+            <span className="font-bold text-sm truncate">{shop?.name || "Smart Pharmacy"}</span>
+            {shop?.code && <Badge variant="outline" className="font-mono text-[10px] py-0 px-1.5">{shop.code}</Badge>}
           </div>
           <Button variant="ghost" size="sm" onClick={handleSignOut}>
             <LogOut className="h-4 w-4" />

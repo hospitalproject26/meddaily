@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RequireRole } from "@/components/AuthGate";
+import { useCurrentShop } from "@/hooks/use-current-shop";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
@@ -16,6 +18,7 @@ type Range = "day" | "month" | "year";
 
 function ReportsPage() {
   const [range, setRange] = useState<Range>("day");
+  const { data: shop } = useCurrentShop();
 
   const { data: orders = [] } = useQuery({
     queryKey: ["reports", range],
