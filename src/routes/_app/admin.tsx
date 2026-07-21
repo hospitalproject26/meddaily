@@ -142,7 +142,10 @@ function ShopsPanel() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr className="text-left">
+                  <th className="p-3 font-medium">Pharmacy ID</th>
                   <th className="p-3 font-medium">Name</th>
+                  <th className="p-3 font-medium">Owner</th>
+                  <th className="p-3 font-medium">Contact</th>
                   <th className="p-3 font-medium">Plan</th>
                   <th className="p-3 font-medium">Members</th>
                   <th className="p-3 font-medium">Status</th>
@@ -151,11 +154,17 @@ function ShopsPanel() {
                 </tr>
               </thead>
               <tbody>
-                {isLoading && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Loading…</td></tr>}
-                {!isLoading && shops.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No shops yet.</td></tr>}
+                {isLoading && <tr><td colSpan={9} className="p-6 text-center text-muted-foreground">Loading…</td></tr>}
+                {!isLoading && shops.length === 0 && <tr><td colSpan={9} className="p-6 text-center text-muted-foreground">No shops yet.</td></tr>}
                 {shops.map((s) => (
                   <tr key={s.id} className="border-t">
+                    <td className="p-3"><Badge variant="outline" className="font-mono">{s.code}</Badge></td>
                     <td className="p-3 font-medium">{s.name}</td>
+                    <td className="p-3 text-muted-foreground">{s.owner_name ?? "—"}</td>
+                    <td className="p-3 text-muted-foreground text-xs">
+                      <div>{s.email ?? "—"}</div>
+                      <div>{s.phone ?? ""}</div>
+                    </td>
                     <td className="p-3 text-muted-foreground">{s.plan ?? "free"}</td>
                     <td className="p-3">{memberCounts[s.id] ?? 0}</td>
                     <td className="p-3">
@@ -179,6 +188,7 @@ function ShopsPanel() {
                     </td>
                   </tr>
                 ))}
+
               </tbody>
             </table>
           </div>
