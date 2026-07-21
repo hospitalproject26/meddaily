@@ -1,8 +1,10 @@
 import { Link, useRouterState, Outlet, useNavigate } from "@tanstack/react-router";
 import { Home, Receipt, Package, Users, Truck, BarChart3, LogOut, Pill, ShoppingCart, History, Shield } from "lucide-react";
 import { useAuth, AppRole } from "@/hooks/use-auth";
+import { useCurrentShop } from "@/hooks/use-current-shop";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface NavItem {
   to: string;
