@@ -9,18 +9,28 @@ import { Pill } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
+  }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const { user, signIn, signUp, loading } = useAuth();
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (!loading && user) return <Navigate to="/" />;
+  if (!loading && user) {
+    if (next) {
+      window.location.replace(next);
+      return null;
+    }
+    return <Navigate to="/" />;
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +38,11 @@ function LoginPage() {
     const { error } = await signIn(email, password);
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success("Welcome back!"); navigate({ to: "/" }); }
+    else {
+      toast.success("Welcome back!");
+      if (next) window.location.replace(next);
+      else navigate({ to: "/" });
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
