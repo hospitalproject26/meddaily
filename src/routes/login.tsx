@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { Pill, ArrowRight, ShieldCheck, Sparkles, Building2, Lock, User } from "lucide-react";
 import { motion } from "framer-motion";
 
