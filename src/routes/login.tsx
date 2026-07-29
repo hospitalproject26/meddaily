@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { Pill, ArrowRight, ShieldCheck, Sparkles, Building2, Lock } from "lucide-react";
+import { Pill, ArrowRight, ShieldCheck, Sparkles, Building2, Lock, User } from "lucide-react";
 import { motion } from "framer-motion";
 
 function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { signIn, signUp, loading } = useAuth();
@@ -13,7 +14,7 @@ function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSignUp) {
-      signUp(email, password);
+      signUp(email, password, name);
     } else {
       signIn(email, password);
     }
@@ -71,6 +72,23 @@ function Login() {
 
         {/* Form Inputs */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isSignUp && (
+            <div>
+              <label className="text-xs font-semibold text-slate-700 block mb-1.5 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-slate-400" />
+                <span>Full Name / Owner Name</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Medical Shop Owner"
+                className="w-full px-4 py-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+              />
+            </div>
+          )}
+
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1.5 flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
