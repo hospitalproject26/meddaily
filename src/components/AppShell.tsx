@@ -3,10 +3,10 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 
 interface AppShellProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export default function AppShell({ children }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -24,3 +24,5 @@ export default function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
+
+export default AppShell;
