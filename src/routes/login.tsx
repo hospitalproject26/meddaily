@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { useAuth } from "@/hooks/useAuth"; // Preserved existing authentication hook
+import { createFileRoute } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 import { Pill, ArrowRight, ShieldCheck, Sparkles, Building2, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function Login() {
+function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -120,3 +121,9 @@ export default function Login() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/login")({
+  component: Login,
+});
+
+export default Login;
