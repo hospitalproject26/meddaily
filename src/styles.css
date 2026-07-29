@@ -1,52 +1,75 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 158 64% 40%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 204 100% 97%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 158 64% 40%;
+    --background: 224 71% 4%;
+    --foreground: 150 100% 90%;
+    --card: 224 71% 6%;
+    --card-foreground: 150 100% 90%;
+    --popover: 224 71% 6%;
+    --popover-foreground: 150 100% 90%;
+    --primary: 156 100% 45%;
+    --primary-foreground: 224 71% 4%;
+    --secondary: 160 80% 12%;
+    --secondary-foreground: 150 100% 90%;
+    --muted: 224 50% 10%;
+    --muted-foreground: 150 30% 60%;
+    --accent: 156 100% 45%;
+    --accent-foreground: 224 71% 4%;
+    --border: 160 50% 15%;
+    --input: 224 50% 12%;
+    --ring: 156 100% 45%;
     --radius: 1rem;
   }
 }
 
-/* Modern Glassmorphism & 3D Layering */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.05);
+body {
+  background-color: #030706 !important;
+  color: #e2fef4 !important;
+  background-image: 
+    radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 10% 80%, rgba(5, 150, 105, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%) !important;
+  background-attachment: fixed;
 }
 
-.glass-card-3d {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+/* 3D Dark Emerald Glass Panel */
+.glass-panel, .glass-card-3d {
+  background: rgba(6, 18, 14, 0.75) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
   box-shadow: 
-    0 20px 40px -15px rgba(16, 185, 129, 0.12),
-    0 10px 15px -8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 2px 0 rgba(255, 255, 255, 1);
+    0 20px 50px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(16, 185, 129, 0.15),
+    inset 0 1px 1px rgba(16, 185, 129, 0.3) !important;
+  border-radius: 1.25rem !important;
 }
 
-/* Background Glowing Orbs */
-.bg-gradient-orb-green {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+/* Inputs & Forms */
+input {
+  background: rgba(3, 12, 9, 0.8) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  color: #ffffff !important;
 }
 
-.bg-gradient-orb-blue {
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+input:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Glowing Neon Emerald Button */
+button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #030706 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
+  transition: all 0.3s ease !important;
+}
+
+button:hover {
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.7) !important;
+  transform: translateY(-2px);
 }
