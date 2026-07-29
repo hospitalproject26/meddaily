@@ -1,4 +1,5 @@
 import React from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { 
   IndianRupee, 
@@ -15,7 +16,7 @@ import {
   ShoppingBag
 } from "lucide-react";
 
-export default function Dashboard() {
+function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 lg:p-8 space-y-8 relative overflow-hidden">
       {/* Subtle Ambient Background Lighting */}
@@ -223,4 +224,11 @@ export default function Dashboard() {
       </div>
     </div>
   );
-          }
+}
+
+export const Route = createFileRoute("/_app/")({
+  component: Dashboard,
+});
+
+export default Dashboard;
+                  
