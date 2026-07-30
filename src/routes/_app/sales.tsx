@@ -1,69 +1,139 @@
-import React, { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ShoppingCart, Search, Calendar, Filter, Eye, Download, MoreVertical } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrentShop } from "@/hooks/use-current-shop";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Search, FileDown } from "lucide-react";
 
 export const Route = createFileRoute("/_app/sales")({
-  component: SalesPage,
+  component: SalesHistoryPage,
 });
 
-const mockSales = [
-  { id: "INV-2026-001", customer: "Rahul Sharma", date: "2026-07-29", items: 3, total: 450.00, status: "Paid" },
-  { id: "INV-2026-002", customer: "Anita Desai", date: "2026-07-28", items: 1, total: 125.50, status: "Paid" },
-  { id: "INV-2026-003", customer: "Vijay Patil", date: "2026-07-28", items: 5, total: 1250.00, status: "Pending" },
-];
+function SalesHistoryPage() {
+  const [search, setSearch] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const { data: shop } = useCurrentShop();
 
-function SalesPage() {
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ["sales-history", search, from, to],
+    queryFn: async () => {
+      let q = supabase.from("orders").select("*, order_items(*)").order("date", { ascending: false }).limit(500);
+      if (search) q = q.ilike("customer_name", `%${search}%`);
+      if (from) q = q.gte("date", from);
+      if (to) q = q.lte("date", `${to}T23:59:59`);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const totals = useMemo(() => {
+    let sales = 0, profit = 0;
+    orders.forEach((o: any) => { sales += Number(o.total_amount); profit += Number(o.total_profit); });
+    return { sales, profit, count: orders.length };
+  }, [orders]);
+
+  const exportCsv = () => {
+    const rows = [
+      ["Pharmacy ID", "Pharmacy", "Invoice", "Date", "Customer", "Mobile", "Items", "Subtotal", "Discount", "GST", "Total", "Profit", "Payment"],
+      ...orders.map((o: any) => [
+        shop?.code || "",
+        shop?.name || "",
+        o.invoice_number || o.id,
+        new Date(o.date).toLocaleString(),
+        o.customer_name || "",
+        o.mobile_number || "",
+        (o.order_items || []).map((i: any) => `${i.medicine_name} x${i.quantity_sold}`).join("; "),
+        o.total_rate, o.total_discount, o.gst_amount || 0, o.total_amount, o.total_profit, o.payment_method || "",
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `sales-${shop?.code || "all"}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="p-6 glass-panel rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xl shadow-emerald-900/10">
-        <div className="flex items-center gap-2 text-emerald-100 text-xs font-bold mb-1">
-          <ShoppingCart className="w-4 h-4" />
-          <span>Transaction Records</span>
+    <div className="space-y-6 max-w-7xl">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold">Sales History</h1>
+            {shop?.code && <Badge variant="outline" className="font-mono text-xs">{shop.code}</Badge>}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {shop?.name ? `${shop.name} · ` : ""}All past bills with filters.
+          </p>
         </div>
-        <h1 className="text-2xl font-black">Sales History</h1>
+        <Button variant="outline" onClick={exportCsv}><FileDown className="h-4 w-4 mr-2" />Export CSV</Button>
       </div>
 
-      {/* Controls */}
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input type="text" placeholder="Search by Invoice ID or Customer..." className="w-full pl-10 pr-4 py-2.5 text-xs bg-white border border-slate-200 rounded-2xl" />
-        </div>
-        <button className="px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-slate-600 text-xs font-bold flex items-center gap-2">
-          <Calendar className="w-3.5 h-3.5" /> Date Range
-        </button>
+
+      <div className="grid sm:grid-cols-3 gap-3">
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Orders</div><div className="text-2xl font-bold">{totals.count}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Total sales</div><div className="text-2xl font-bold">₹{totals.sales.toFixed(2)}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Total profit</div><div className="text-2xl font-bold">₹{totals.profit.toFixed(2)}</div></CardContent></Card>
       </div>
 
-      {/* Table */}
-      <div className="glass-panel rounded-3xl bg-white p-5 border border-slate-200/80">
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="text-slate-400 font-bold border-b border-slate-100">
-              <th className="pb-3 pl-2">Invoice ID</th>
-              <th className="pb-3">Customer</th>
-              <th className="pb-3">Date</th>
-              <th className="pb-3">Items</th>
-              <th className="pb-3">Total</th>
-              <th className="pb-3 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {mockSales.map((sale) => (
-              <tr key={sale.id} className="hover:bg-slate-50">
-                <td className="py-4 pl-2 font-bold text-emerald-600">{sale.id}</td>
-                <td className="py-4 font-medium text-slate-700">{sale.customer}</td>
-                <td className="py-4 text-slate-500">{sale.date}</td>
-                <td className="py-4 text-slate-500">{sale.items}</td>
-                <td className="py-4 font-bold text-slate-900">₹{sale.total.toFixed(2)}</td>
-                <td className="py-4 text-right">
-                  <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400"><Eye className="w-4 h-4" /></button>
-                </td>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Filters</CardTitle></CardHeader>
+        <CardContent className="grid sm:grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs">Customer</Label>
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Search customer…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+          </div>
+          <div><Label className="text-xs">From</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
+          <div><Label className="text-xs">To</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-0 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs uppercase text-muted-foreground bg-muted/40">
+              <tr>
+                <th className="px-3 py-2 text-left">Invoice</th>
+                <th className="px-3 py-2 text-left">Date</th>
+                <th className="px-3 py-2 text-left">Customer</th>
+                <th className="px-3 py-2 text-right">Items</th>
+                <th className="px-3 py-2 text-right">Discount</th>
+                <th className="px-3 py-2 text-right">GST</th>
+                <th className="px-3 py-2 text-right">Total</th>
+                <th className="px-3 py-2 text-right">Profit</th>
+                <th className="px-3 py-2 text-left">Payment</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {isLoading && <tr><td colSpan={9} className="text-center py-8 text-muted-foreground">Loading…</td></tr>}
+              {!isLoading && orders.map((o: any) => (
+                <tr key={o.id} className="border-t hover:bg-muted/30">
+                  <td className="px-3 py-2 font-mono text-xs">{o.invoice_number || o.id.slice(0, 8)}</td>
+                  <td className="px-3 py-2">{new Date(o.date).toLocaleDateString()}</td>
+                  <td className="px-3 py-2">{o.customer_name || "—"}<div className="text-xs text-muted-foreground">{o.mobile_number}</div></td>
+                  <td className="px-3 py-2 text-right">{(o.order_items || []).length}</td>
+                  <td className="px-3 py-2 text-right">₹{Number(o.total_discount).toFixed(2)}</td>
+                  <td className="px-3 py-2 text-right">₹{Number(o.gst_amount || 0).toFixed(2)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">₹{Number(o.total_amount).toFixed(2)}</td>
+                  <td className="px-3 py-2 text-right">₹{Number(o.total_profit).toFixed(2)}</td>
+                  <td className="px-3 py-2 text-xs">{o.payment_method || "—"}</td>
+                </tr>
+              ))}
+              {!isLoading && !orders.length && <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">No sales found.</td></tr>}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

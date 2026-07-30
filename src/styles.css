@@ -1,75 +1,187 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --shadow-soft: 0 1px 2px oklch(0.2 0.03 240 / 0.04), 0 8px 24px -12px oklch(0.2 0.03 240 / 0.14);
+  --shadow-float: 0 2px 4px oklch(0.2 0.03 240 / 0.04), 0 18px 40px -20px oklch(0.2 0.03 240 / 0.22);
+  --shadow-lift: 0 4px 8px oklch(0.2 0.03 240 / 0.05), 0 28px 56px -24px oklch(0.2 0.03 240 / 0.28);
+}
+
+:root {
+  --radius: 1.125rem;
+  --background: oklch(0.995 0.002 220);
+  --foreground: oklch(0.19 0.02 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.02 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.02 250);
+  --primary: oklch(0.62 0.15 162);
+  --primary-foreground: oklch(0.99 0.005 165);
+  --secondary: oklch(0.968 0.004 240);
+  --secondary-foreground: oklch(0.28 0.02 250);
+  --muted: oklch(0.968 0.004 240);
+  --muted-foreground: oklch(0.53 0.015 250);
+  --accent: oklch(0.955 0.03 165);
+  --accent-foreground: oklch(0.34 0.09 165);
+  --destructive: oklch(0.6 0.21 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.64 0.16 155);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.79 0.15 75);
+  --warning-foreground: oklch(0.28 0.08 75);
+  --danger: oklch(0.62 0.21 25);
+  --danger-foreground: oklch(0.99 0 0);
+  --border: oklch(0.925 0.005 240);
+  --input: oklch(0.915 0.006 240);
+  --ring: oklch(0.62 0.15 162);
+  --sidebar: oklch(1 0 0 / 0.72);
+  --sidebar-foreground: oklch(0.28 0.02 250);
+  --sidebar-primary: oklch(0.62 0.15 162);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.955 0.03 165);
+  --sidebar-accent-foreground: oklch(0.34 0.09 165);
+  --sidebar-border: oklch(0.93 0.005 240);
+  --sidebar-ring: oklch(0.62 0.15 162);
+  --chart-1: oklch(0.62 0.15 162);
+  --chart-2: oklch(0.65 0.13 220);
+  --chart-3: oklch(0.74 0.16 75);
+  --chart-4: oklch(0.62 0.19 25);
+  --chart-5: oklch(0.55 0.13 280);
+}
+
+
+.dark {
+  --background: oklch(0.15 0.02 240);
+  --foreground: oklch(0.96 0.005 220);
+  --card: oklch(0.2 0.025 240);
+  --card-foreground: oklch(0.96 0.005 220);
+  --popover: oklch(0.2 0.025 240);
+  --popover-foreground: oklch(0.96 0.005 220);
+  --primary: oklch(0.65 0.18 165);
+  --primary-foreground: oklch(0.15 0.02 240);
+  --secondary: oklch(0.27 0.03 240);
+  --secondary-foreground: oklch(0.96 0.005 220);
+  --muted: oklch(0.27 0.03 240);
+  --muted-foreground: oklch(0.7 0.02 220);
+  --accent: oklch(0.3 0.06 165);
+  --accent-foreground: oklch(0.95 0.05 165);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+}
 
 @layer base {
-  :root {
-    --background: 224 71% 4%;
-    --foreground: 150 100% 90%;
-    --card: 224 71% 6%;
-    --card-foreground: 150 100% 90%;
-    --popover: 224 71% 6%;
-    --popover-foreground: 150 100% 90%;
-    --primary: 156 100% 45%;
-    --primary-foreground: 224 71% 4%;
-    --secondary: 160 80% 12%;
-    --secondary-foreground: 150 100% 90%;
-    --muted: 224 50% 10%;
-    --muted-foreground: 150 30% 60%;
-    --accent: 156 100% 45%;
-    --accent-foreground: 224 71% 4%;
-    --border: 160 50% 15%;
-    --input: 224 50% 12%;
-    --ring: 156 100% 45%;
-    --radius: 1rem;
+  * { border-color: var(--color-border); }
+  body {
+    background-color: var(--color-background);
+    background-image:
+      radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 70%),
+      radial-gradient(50rem 35rem at 100% 0%, color-mix(in oklab, var(--chart-2) 7%, transparent), transparent 70%);
+    background-attachment: fixed;
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { letter-spacing: -0.022em; }
+}
+
+/* Premium surfaces */
+@utility glass {
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+}
+
+@utility card-float {
+  box-shadow: var(--shadow-float);
+  transition: box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  &:hover {
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-2px);
   }
 }
 
-body {
-  background-color: #030706 !important;
-  color: #e2fef4 !important;
-  background-image: 
-    radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 10% 80%, rgba(5, 150, 105, 0.1) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%) !important;
-  background-attachment: fixed;
+@utility press {
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
+  &:active { transform: translateY(0) scale(0.98); }
 }
 
-/* 3D Dark Emerald Glass Panel */
-.glass-panel, .glass-card-3d {
-  background: rgba(6, 18, 14, 0.75) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  border: 1px solid rgba(16, 185, 129, 0.2) !important;
-  box-shadow: 
-    0 20px 50px rgba(0, 0, 0, 0.8),
-    0 0 30px rgba(16, 185, 129, 0.15),
-    inset 0 1px 1px rgba(16, 185, 129, 0.3) !important;
-  border-radius: 1.25rem !important;
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
 
-/* Inputs & Forms */
-input {
-  background: rgba(3, 12, 9, 0.8) !important;
-  border: 1px solid rgba(16, 185, 129, 0.25) !important;
-  color: #ffffff !important;
+.page-enter {
+  animation: page-enter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-input:focus {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4) !important;
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
+  * { scroll-behavior: auto; }
 }
 
-/* Glowing Neon Emerald Button */
-button {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  color: #030706 !important;
-  font-weight: 700 !important;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
-  transition: all 0.3s ease !important;
+
+.inventory-table-wrap {
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+  contain: paint;
 }
 
-button:hover {
-  box-shadow: 0 0 35px rgba(16, 185, 129, 0.7) !important;
-  transform: translateY(-2px);
+.inventory-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.inventory-table th,
+.inventory-table td {
+  white-space: nowrap;
+}
+
+.inventory-table tbody tr:hover td:not(.sticky) {
+  background-color: color-mix(in oklab, var(--color-muted) 30%, transparent);
+}
+
+.inventory-table tbody tr:hover td.sticky {
+  background-color: color-mix(in oklab, var(--color-muted) 30%, var(--color-card));
+}
+
+
+@media print {
+  body * { visibility: hidden; }
+  #receipt-body, #receipt-body * { visibility: visible; }
+  #receipt-body { position: absolute; left: 0; top: 0; width: 100%; padding: 12px; color: #000; }
+  .print\:hidden { display: none !important; }
 }

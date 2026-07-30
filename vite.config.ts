@@ -15,11 +15,5 @@ export default defineConfig({
   },
   vite: {
     plugins: [mcpPlugin()],
-    build: {
-      rollupOptions: {
-        external: ["cloudflare:workers"],
-      },
-    },
   },
 });
-
