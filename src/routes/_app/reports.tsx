@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { IndianRupee, TrendingUp, ShoppingCart } from "lucide-react";
+import { Scroll3DSection } from "@/components/scroll-3d";
 
 export const Route = createFileRoute("/_app/reports")({
   component: () => <RequireRole roles={["Owner"]}><ReportsPage /></RequireRole>,
@@ -56,29 +57,31 @@ function ReportsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl md:text-3xl font-bold">Reports</h1>
-          {shop?.code && <Badge variant="outline" className="font-mono text-xs">{shop.code}</Badge>}
+      <Scroll3DSection>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold">Reports</h1>
+            {shop?.code && <Badge variant="outline" className="font-mono text-xs">{shop.code}</Badge>}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {shop?.name ? `${shop.name} · ` : ""}Revenue, profit, and orders over time.
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {shop?.name ? `${shop.name} · ` : ""}Revenue, profit, and orders over time.
-        </p>
-      </div>
 
-      <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
-        <TabsList>
-          <TabsTrigger value="day">Today</TabsTrigger>
-          <TabsTrigger value="month">This Month</TabsTrigger>
-          <TabsTrigger value="year">This Year</TabsTrigger>
-        </TabsList>
-      </Tabs>
+        <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="mt-4">
+          <TabsList>
+            <TabsTrigger value="day">Today</TabsTrigger>
+            <TabsTrigger value="month">This Month</TabsTrigger>
+            <TabsTrigger value="year">This Year</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="Total Revenue" value={`₹${totals.revenue.toFixed(2)}`} Icon={IndianRupee} accent="primary" />
-        <StatCard label="Total Profit" value={`₹${totals.profit.toFixed(2)}`} Icon={TrendingUp} accent="success" />
-        <StatCard label="Orders" value={String(totals.count)} Icon={ShoppingCart} accent="accent" />
-      </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+          <StatCard label="Total Revenue" value={`₹${totals.revenue.toFixed(2)}`} Icon={IndianRupee} accent="primary" />
+          <StatCard label="Total Profit" value={`₹${totals.profit.toFixed(2)}`} Icon={TrendingUp} accent="success" />
+          <StatCard label="Orders" value={String(totals.count)} Icon={ShoppingCart} accent="accent" />
+        </div>
+      </Scroll3DSection>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Revenue vs Profit</CardTitle></CardHeader>

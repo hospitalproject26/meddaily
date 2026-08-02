@@ -1,3 +1,4 @@
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -7,6 +8,8 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
+import { AnimatePresence } from "framer-motion";
+import { CinematicIntro, hasSeenIntro, markIntroSeen } from "@/components/CinematicIntro";
 
 import appCss from "../styles.css?url";
 
@@ -49,9 +52,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [showIntro, setShowIntro] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!hasSeenIntro()) {
+      setShowIntro(true);
+    }
+  }, []);
+
+  const finishIntro = () => {
+    markIntroSeen();
+    setShowIntro(false);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <AnimatePresence>{showIntro && <CinematicIntro onComplete={finishIntro} />}</AnimatePresence>
         <Outlet />
         <Toaster richColors position="top-right" />
       </AuthProvider>
